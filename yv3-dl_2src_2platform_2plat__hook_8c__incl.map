@@ -1,0 +1,26 @@
+<map id="meta&#45;facebook/yv3&#45;dl/src/platform/plat_hook.c" name="meta&#45;facebook/yv3&#45;dl/src/platform/plat_hook.c">
+<area shape="rect" id="node1" title=" " alt="" coords="345,5,510,47"/>
+<area shape="rect" id="node2" title=" " alt="" coords="8,319,68,345"/>
+<area shape="rect" id="node3" title=" " alt="" coords="319,169,383,196"/>
+<area shape="rect" id="node4" href="$ipmi_8h.html" title=" " alt="" coords="237,95,293,121"/>
+<area shape="rect" id="node8" href="$sensor_8h.html" title=" " alt="" coords="507,95,577,121"/>
+<area shape="rect" id="node18" href="$yv3-dl_2src_2platform_2plat__i2c_8h.html" title=" " alt="" coords="389,95,466,121"/>
+<area shape="rect" id="node19" href="$yv3-dl_2src_2platform_2plat__gpio_8h.html" title=" " alt="" coords="71,95,155,121"/>
+<area shape="rect" id="node22" href="$yv3-dl_2src_2platform_2plat__hook_8h.html" title=" " alt="" coords="602,95,690,121"/>
+<area shape="rect" id="node23" title=" " alt="" coords="715,95,849,121"/>
+<area shape="rect" id="node24" href="$i2c-mux-tca9548_8h.html" title=" " alt="" coords="873,95,1000,121"/>
+<area shape="rect" id="node5" href="$ipmb_8h.html" title=" " alt="" coords="201,244,261,271"/>
+<area shape="rect" id="node7" title=" " alt="" coords="192,169,295,196"/>
+<area shape="rect" id="node6" title=" " alt="" coords="128,319,220,345"/>
+<area shape="rect" id="node9" title=" " alt="" coords="729,244,803,271"/>
+<area shape="rect" id="node10" title=" " alt="" coords="527,244,591,271"/>
+<area shape="rect" id="node11" title=" " alt="" coords="671,169,738,196"/>
+<area shape="rect" id="node12" title=" " alt="" coords="763,169,841,196"/>
+<area shape="rect" id="node13" href="$sdr_8h.html" title=" " alt="" coords="597,169,647,196"/>
+<area shape="rect" id="node14" href="$libutil_8h.html" title=" " alt="" coords="459,169,521,196"/>
+<area shape="rect" id="node15" href="$hal__i2c_8h.html" title=" " alt="" coords="419,244,492,271"/>
+<area shape="rect" id="node16" title=" " alt="" coords="264,319,356,345"/>
+<area shape="rect" id="node17" title=" " alt="" coords="380,319,539,345"/>
+<area shape="rect" id="node20" href="$hal__gpio_8h.html" title=" " alt="" coords="37,169,117,196"/>
+<area shape="rect" id="node21" title=" " alt="" coords="27,244,126,271"/>
+</map>

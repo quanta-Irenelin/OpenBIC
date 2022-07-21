@@ -1,0 +1,22 @@
+var searchData=
+[
+  ['valid_5freading_0',['VALID_READING',['../pch_8c.html#a491bc61b8a60bdb6cf20984dda274ce1',1,'pch.c']]],
+  ['voltage_5fselect_5fbit_1',['VOLTAGE_SELECT_BIT',['../yv35-bb_2src_2platform_2plat__hook_8c.html#ab0cfff3b97a2d490170fd323b566ed4b',1,'plat_hook.c']]],
+  ['vr_5fa0v8_5faddr_2',['VR_A0V8_ADDR',['../yv35-rf_2src_2platform_2plat__sensor__table_8h.html#a3cceb6821a25529033c335039e320f8f',1,'plat_sensor_table.h']]],
+  ['vr_5fa0v9_5faddr_3',['VR_A0V9_ADDR',['../yv35-rf_2src_2platform_2plat__sensor__table_8h.html#a5b13cda0d593e8301e6eefba77fb7a86',1,'plat_sensor_table.h']]],
+  ['vr_5fcur_5fcmd_4',['VR_CUR_CMD',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#afb28f6d25547f484f737b20ec21abd9c',1,'VR_CUR_CMD():&#160;plat_sensor_table.h'],['../yv35-cl_2src_2platform_2plat__sensor__table_8h.html#afb28f6d25547f484f737b20ec21abd9c',1,'VR_CUR_CMD():&#160;plat_sensor_table.h']]],
+  ['vr_5fcur_5fin_5fcmd_5',['VR_CUR_IN_CMD',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#a836944fbdace308a3d6550677805ea39',1,'plat_sensor_table.h']]],
+  ['vr_5fd0v8_5faddr_6',['VR_D0V8_ADDR',['../yv35-rf_2src_2platform_2plat__sensor__table_8h.html#a8a2f1b2ab867a3952a40bc30382a0811',1,'plat_sensor_table.h']]],
+  ['vr_5fpage_5foffset_7',['VR_PAGE_OFFSET',['../yv35-rf_2src_2platform_2plat__sensor__table_8h.html#ac9e5d5b18bbbc4388af0a3bcae6947be',1,'plat_sensor_table.h']]],
+  ['vr_5fpu14_5fsrc0_5faddr_8',['VR_PU14_SRC0_ADDR',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#aa399356421c5cef33ee61f1bb85eae5a',1,'plat_sensor_table.h']]],
+  ['vr_5fpu14_5fsrc1_5faddr_9',['VR_PU14_SRC1_ADDR',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#a13ce95fc9b9ead086e78e5db21e68220',1,'plat_sensor_table.h']]],
+  ['vr_5fpu35_5fsrc0_5faddr_10',['VR_PU35_SRC0_ADDR',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#a554701e5eb8a804e2cb81e4903cc08fd',1,'plat_sensor_table.h']]],
+  ['vr_5fpu35_5fsrc1_5faddr_11',['VR_PU35_SRC1_ADDR',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#a543aa174283e87fb364195969a6fd792',1,'plat_sensor_table.h']]],
+  ['vr_5fpu5_5fsrc0_5faddr_12',['VR_PU5_SRC0_ADDR',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#a8bf9a4e1ef7c307fbe05395281cbcda4',1,'plat_sensor_table.h']]],
+  ['vr_5fpu5_5fsrc1_5faddr_13',['VR_PU5_SRC1_ADDR',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#ac1c6c27b4e6762d0000d36549a53f55b',1,'plat_sensor_table.h']]],
+  ['vr_5fpwr_5fcmd_14',['VR_PWR_CMD',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#aec086e5f96d041512cbf13105dfd3f8e',1,'VR_PWR_CMD():&#160;plat_sensor_table.h'],['../yv35-cl_2src_2platform_2plat__sensor__table_8h.html#aec086e5f96d041512cbf13105dfd3f8e',1,'VR_PWR_CMD():&#160;plat_sensor_table.h']]],
+  ['vr_5ftemp_5fcmd_15',['VR_TEMP_CMD',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#a093d18013984a8a284dd82ef31955100',1,'VR_TEMP_CMD():&#160;plat_sensor_table.h'],['../yv35-cl_2src_2platform_2plat__sensor__table_8h.html#a093d18013984a8a284dd82ef31955100',1,'VR_TEMP_CMD():&#160;plat_sensor_table.h']]],
+  ['vr_5fvddqab_5faddr_16',['VR_VDDQAB_ADDR',['../yv35-rf_2src_2platform_2plat__sensor__table_8h.html#aa1f542ffa342f75b378e6c5de9702fcd',1,'plat_sensor_table.h']]],
+  ['vr_5fvddqcd_5faddr_17',['VR_VDDQCD_ADDR',['../yv35-rf_2src_2platform_2plat__sensor__table_8h.html#ad87382035f242d37f97122a498c03ec1',1,'plat_sensor_table.h']]],
+  ['vr_5fvol_5fcmd_18',['VR_VOL_CMD',['../wc-mb_2src_2platform_2plat__sensor__table_8h.html#a4c63f9848c4c0963d857b7e564dd19fc',1,'VR_VOL_CMD():&#160;plat_sensor_table.h'],['../yv35-cl_2src_2platform_2plat__sensor__table_8h.html#a4c63f9848c4c0963d857b7e564dd19fc',1,'VR_VOL_CMD():&#160;plat_sensor_table.h']]]
+];

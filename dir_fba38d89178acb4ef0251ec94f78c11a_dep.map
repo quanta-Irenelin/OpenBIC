@@ -1,0 +1,9 @@
+<map id="common/shell" name="common/shell">
+<area shape="rect" id="node1" href="dir_692042c7f74d5c5ea85af01a467df1b3.html" title="service" alt="" coords="27,148,99,196"/>
+<area shape="rect" id="node2" href="dir_9c2df41621e55a52376835fd7249f524.html" title="hal" alt="" coords="40,244,112,292"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000005_000003.html" title="9" alt="" coords="75,217,83,232"/>
+<area shape="rect" id="node3" href="dir_fba38d89178acb4ef0251ec94f78c11a.html" title="shell" alt="" coords="40,52,112,100"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000014_000005.html" title="2" alt="" coords="73,124,81,138"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000014_000003.html" title="1" alt="" coords="103,224,111,239"/>
+<area shape="rect" id="clust1" href="dir_bdd9a5d540de89e9fe90efdfc6973a4f.html" title="common" alt="" coords="16,16,136,303"/>
+</map>

@@ -1,0 +1,11 @@
+<map id="common/dev/fru.c" name="common/dev/fru.c">
+<area shape="rect" id="node1" title=" " alt="" coords="145,5,272,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,80,65,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="89,80,152,107"/>
+<area shape="rect" id="node4" title=" " alt="" coords="177,80,241,107"/>
+<area shape="rect" id="node5" href="$fru_8h.html" title=" " alt="" coords="265,80,312,107"/>
+<area shape="rect" id="node9" title=" " alt="" coords="337,80,411,107"/>
+<area shape="rect" id="node6" href="$eeprom_8h.html" title=" " alt="" coords="251,155,326,181"/>
+<area shape="rect" id="node7" title=" " alt="" coords="205,229,279,256"/>
+<area shape="rect" id="node8" title=" " alt="" coords="303,229,367,256"/>
+</map>

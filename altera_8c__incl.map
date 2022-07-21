@@ -1,0 +1,13 @@
+<map id="common/dev/altera.c" name="common/dev/altera.c">
+<area shape="rect" id="node1" title=" " alt="" coords="161,5,304,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="27,155,96,181"/>
+<area shape="rect" id="node3" title=" " alt="" coords="23,80,87,107"/>
+<area shape="rect" id="node4" title=" " alt="" coords="112,80,172,107"/>
+<area shape="rect" id="node5" title=" " alt="" coords="294,155,358,181"/>
+<area shape="rect" id="node6" href="$altera_8h.html" title=" " alt="" coords="294,80,358,107"/>
+<area shape="rect" id="node7" href="$util__spi_8h.html" title=" " alt="" coords="196,80,269,107"/>
+<area shape="rect" id="node9" href="$hal__i2c_8h.html" title=" " alt="" coords="433,80,506,107"/>
+<area shape="rect" id="node8" title=" " alt="" coords="195,155,270,181"/>
+<area shape="rect" id="node10" title=" " alt="" coords="569,155,661,181"/>
+<area shape="rect" id="node11" title=" " alt="" coords="386,155,545,181"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="OEM_1S_FW_UPDATE" name="OEM_1S_FW_UPDATE">
+<area shape="rect" id="node1" title=" " alt="" coords="5,202,167,229"/>
+<area shape="rect" id="node2" href="$altera_8c.html#a8c9eb76296f6137b2728a54d5511a470" title=" " alt="" coords="226,5,377,47"/>
+<area shape="rect" id="node4" href="$util__spi_8c.html#a6189f23a7dae0958828a5947cb043d81" title=" " alt="" coords="260,71,343,98"/>
+<area shape="rect" id="node5" href="$util__spi_8c.html#a3c3f70e20dcd1bab5ec57da2caf3d375" title=" " alt="" coords="249,122,354,149"/>
+<area shape="rect" id="node6" href="$hal__gpio_8c.html#ab1b576cbfd9eddaaf57a5aa5fc383dd1" title=" " alt="" coords="266,173,337,199"/>
+<area shape="rect" id="node8" href="$util__spi_8c.html#a97dc0465ff90d3a3e8672c0cca62788a" title=" " alt="" coords="237,224,366,265"/>
+<area shape="rect" id="node9" href="$util__spi_8c.html#a68af8a1cac6bb5917245bf9f3c300abe" title=" " alt="" coords="215,290,388,317"/>
+<area shape="rect" id="node10" href="$util__spi_8c.html#a975f00738cdb64617415a7d84f136db8" title=" " alt="" coords="216,341,387,367"/>
+<area shape="rect" id="node11" href="$util__spi_8c.html#adee70c9e647a9fb41ef9d23c5b3a1e42" title=" " alt="" coords="220,391,383,418"/>
+<area shape="rect" id="node3" href="$altera_8c.html#a26aee7925292aec05fd7058f025eba2d" title=" " alt="" coords="436,13,616,39"/>
+<area shape="rect" id="node7" href="$hal__gpio_8c.html#aba20fe1f621c6477f568ea944e37f5c4" title=" " alt="" coords="487,173,565,199"/>
+</map>

@@ -1,0 +1,25 @@
+var yv35_cl_2src_2platform_2plat__hook_8h =
+[
+    [ "_isl69259_pre_proc_arg", "struct__isl69259__pre__proc__arg.html", "struct__isl69259__pre__proc__arg" ],
+    [ "_pmic_pre_proc_arg", "struct__pmic__pre__proc__arg.html", "struct__pmic__pre__proc__arg" ],
+    [ "isl69259_pre_proc_arg", "yv35-cl_2src_2platform_2plat__hook_8h.html#a2a592c3fceb52b29ae30e3d54077af87", null ],
+    [ "pmic_pre_proc_arg", "yv35-cl_2src_2platform_2plat__hook_8h.html#ac16b569077f914de2a1bd17bf6852d51", null ],
+    [ "post_adm1278_current_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#a20b3c3b8f2e4b093867f810721b15f1d", null ],
+    [ "post_adm1278_power_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#a37467f35a4879f82e76f36af306e534c", null ],
+    [ "post_cpu_margin_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#aaf3d1fbcd0334ec5b7f3deddee999252", null ],
+    [ "post_ltc4286_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#ac234401cec83ee935601827ba9d76cbd", null ],
+    [ "post_vol_bat3v_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#abea2b0c31bb3d1741bc9ab8dbca1da22", null ],
+    [ "pre_isl69259_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#a2df219ef5cffeee9813f12bdaa280ef4", null ],
+    [ "pre_nvme_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#a915fd0b72029757b8b94e5d0d92a1fa0", null ],
+    [ "pre_pmic_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#afd655303dfb326a0098db9bf2d435a9b", null ],
+    [ "pre_vol_bat3v_read", "yv35-cl_2src_2platform_2plat__hook_8h.html#a2ff36b64d099736c63c4da5af11d6e29", null ],
+    [ "adc_asd_init_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#a647016b422bcbb2a37bc4a58ed550217", null ],
+    [ "adm1278_init_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#abe0ef97f874ddc015e28e368e1f3c265", null ],
+    [ "isl69259_pre_read_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#ae22b9e92b1f0614546b5635a9a321654", null ],
+    [ "ltc4286_init_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#ad8db3c9c0ac290d30da54a760dc11687", null ],
+    [ "max16550a_init_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#a5a009798cf3e5dd6a923eb9e717f8691", null ],
+    [ "mp5990_init_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#af233f1a2892a29fea77b723b5a373105", null ],
+    [ "mux_conf_addr_0xe2", "yv35-cl_2src_2platform_2plat__hook_8h.html#aac28b366ed2b1e786818909c524e233d", null ],
+    [ "pmic_init_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#a7931056717b46e3b41070f2b3ac0de66", null ],
+    [ "pmic_pre_read_args", "yv35-cl_2src_2platform_2plat__hook_8h.html#aee64e6b958a2c76e31a46f4eae8efa4c", null ]
+];

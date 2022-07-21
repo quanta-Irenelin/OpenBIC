@@ -1,0 +1,20 @@
+<map id="common/service/ipmi/app_handler.c" name="common/service/ipmi/app_handler.c">
+<area shape="rect" id="node1" title=" " alt="" coords="348,5,495,47"/>
+<area shape="rect" id="node2" href="$app__handler_8h.html" title=" " alt="" coords="113,95,215,121"/>
+<area shape="rect" id="node9" href="$fru_8h.html" title=" " alt="" coords="337,95,383,121"/>
+<area shape="rect" id="node13" href="$sdr_8h.html" title=" " alt="" coords="396,169,447,196"/>
+<area shape="rect" id="node14" href="$guid_8h.html" title=" " alt="" coords="256,95,312,121"/>
+<area shape="rect" id="node15" title=" " alt="" coords="509,95,587,121"/>
+<area shape="rect" id="node16" title=" " alt="" coords="611,95,695,121"/>
+<area shape="rect" id="node17" href="$util__sys_8h.html" title=" " alt="" coords="471,169,547,196"/>
+<area shape="rect" id="node3" href="$ipmi_8h.html" title=" " alt="" coords="104,169,160,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="5,244,69,271"/>
+<area shape="rect" id="node5" href="$ipmb_8h.html" title=" " alt="" coords="94,244,154,271"/>
+<area shape="rect" id="node8" title=" " alt="" coords="178,244,281,271"/>
+<area shape="rect" id="node6" title=" " alt="" coords="29,319,121,345"/>
+<area shape="rect" id="node7" title=" " alt="" coords="145,319,205,345"/>
+<area shape="rect" id="node10" href="$eeprom_8h.html" title=" " alt="" coords="297,169,372,196"/>
+<area shape="rect" id="node11" title=" " alt="" coords="305,244,380,271"/>
+<area shape="rect" id="node12" title=" " alt="" coords="404,244,468,271"/>
+<area shape="rect" id="node18" title=" " alt="" coords="493,244,585,271"/>
+</map>

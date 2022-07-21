@@ -1,0 +1,21 @@
+<map id="common/dev/snoop.c" name="common/dev/snoop.c">
+<area shape="rect" id="node1" title=" " alt="" coords="313,5,460,32"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,87,75,114"/>
+<area shape="rect" id="node3" title=" " alt="" coords="295,244,355,271"/>
+<area shape="rect" id="node4" title=" " alt="" coords="284,169,348,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="201,87,263,114"/>
+<area shape="rect" id="node6" title=" " alt="" coords="287,87,358,114"/>
+<area shape="rect" id="node7" title=" " alt="" coords="383,80,521,121"/>
+<area shape="rect" id="node8" href="$snoop_8h.html" title=" " alt="" coords="545,87,612,114"/>
+<area shape="rect" id="node9" href="$libutil_8h.html" title=" " alt="" coords="717,87,779,114"/>
+<area shape="rect" id="node16" href="$ipmi_8h.html" title=" " alt="" coords="636,87,692,114"/>
+<area shape="rect" id="node18" href="$power__status_8h.html" title=" " alt="" coords="803,87,914,114"/>
+<area shape="rect" id="node10" title=" " alt="" coords="812,169,876,196"/>
+<area shape="rect" id="node11" href="$ipmb_8h.html" title=" " alt="" coords="630,169,690,196"/>
+<area shape="rect" id="node13" href="$hal__i2c_8h.html" title=" " alt="" coords="714,169,787,196"/>
+<area shape="rect" id="node12" title=" " alt="" coords="589,244,681,271"/>
+<area shape="rect" id="node14" title=" " alt="" coords="705,244,797,271"/>
+<area shape="rect" id="node15" title=" " alt="" coords="821,244,979,271"/>
+<area shape="rect" id="node17" title=" " alt="" coords="503,169,606,196"/>
+<area shape="rect" id="node19" title=" " alt="" coords="900,169,975,196"/>
+</map>

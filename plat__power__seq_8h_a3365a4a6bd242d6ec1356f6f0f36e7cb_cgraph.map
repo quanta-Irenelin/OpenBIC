@@ -1,0 +1,9 @@
+<map id="control_power_off_sequence" name="control_power_off_sequence">
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,192,32"/>
+<area shape="rect" id="node2" href="$hal__gpio_8c.html#ab1b576cbfd9eddaaf57a5aa5fc383dd1" title=" " alt="" coords="605,5,676,32"/>
+<area shape="rect" id="node4" href="$plat__power__seq_8c.html#aa64f61d9a124460aa9415165561b9dc0" title=" " alt="" coords="240,31,367,57"/>
+<area shape="rect" id="node3" href="$hal__gpio_8c.html#aba20fe1f621c6477f568ea944e37f5c4" title=" " alt="" coords="724,5,803,32"/>
+<area shape="rect" id="node5" href="$plat__power__seq_8c.html#af3949c1eadc34bafbb2605bcc4ea1706" title=" " alt="" coords="417,31,555,57"/>
+<area shape="rect" id="node6" href="$plat__power__seq_8c.html#a11932a5169acab282997c627fb499d33" title=" " alt="" coords="415,81,557,108"/>
+<area shape="rect" id="node7" href="$hal__gpio_8c.html#af700ee50de3d113e223c2b011c41f966" title=" " alt="" coords="605,81,676,108"/>
+</map>

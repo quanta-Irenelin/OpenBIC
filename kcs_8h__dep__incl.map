@@ -1,0 +1,10 @@
+<map id="common/service/host/kcs.h" name="common/service/host/kcs.h">
+<area shape="rect" id="node1" title=" " alt="" coords="538,5,685,47"/>
+<area shape="rect" id="node2" href="$ipmb_8c.html" title=" " alt="" coords="5,95,156,136"/>
+<area shape="rect" id="node3" href="$ipmi_8c.html" title=" " alt="" coords="181,95,327,136"/>
+<area shape="rect" id="node4" href="$main_8c.html" title=" " alt="" coords="351,102,511,129"/>
+<area shape="rect" id="node5" href="$gt-cc_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="536,95,687,136"/>
+<area shape="rect" id="node6" href="$wc-mb_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="711,95,861,136"/>
+<area shape="rect" id="node7" href="$yv35-bb_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="885,95,1055,136"/>
+<area shape="rect" id="node8" href="$yv35-cl_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="1079,95,1245,136"/>
+</map>

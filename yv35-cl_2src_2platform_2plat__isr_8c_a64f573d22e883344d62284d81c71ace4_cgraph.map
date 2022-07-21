@@ -1,0 +1,10 @@
+<map id="ISR_DC_ON" name="ISR_DC_ON">
+<area shape="rect" id="node1" title=" " alt="" coords="5,136,101,163"/>
+<area shape="rect" id="node2" href="$yv35-cl_2src_2ipmi_2plat__ipmi_8c.html#a1d50a50da070bb8f82e17f05e4fb30fc" title=" " alt="" coords="172,5,307,32"/>
+<area shape="rect" id="node4" href="$power__status_8c.html#a647e7f9c1247d6a1785d9b9502e7fd29" title=" " alt="" coords="185,56,293,83"/>
+<area shape="rect" id="node5" href="$hal__gpio_8c.html#af700ee50de3d113e223c2b011c41f966" title=" " alt="" coords="204,107,275,133"/>
+<area shape="rect" id="node6" href="$power__status_8c.html#a1a43a6cae7b7ec64b70d20ce91b82268" title=" " alt="" coords="171,158,308,199"/>
+<area shape="rect" id="node7" href="$power__status_8c.html#aa3406c25950a307fb61cec9e156605c3" title=" " alt="" coords="149,224,329,251"/>
+<area shape="rect" id="node8" href="$power__status_8c.html#a4482f69c1ee4e17e699b46c3ea5cf05e" title=" " alt="" coords="185,275,293,301"/>
+<area shape="rect" id="node3" href="$ipmb_8h.html#a260c07ba372e6648a635b20dbb790fa9" title=" " alt="" coords="377,5,460,32"/>
+</map>

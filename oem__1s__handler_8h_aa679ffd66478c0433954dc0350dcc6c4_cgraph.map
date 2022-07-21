@@ -1,0 +1,44 @@
+<map id="IPMI_OEM_1S_handler" name="IPMI_OEM_1S_handler">
+<area shape="rect" id="node1" title=" " alt="" coords="5,661,164,688"/>
+<area shape="rect" id="node2" href="$oem__1s__handler_8c.html#a5ad1210677bd0b03c6ee3436cac910ff" title=" " alt="" coords="232,5,428,32"/>
+<area shape="rect" id="node4" href="$oem__1s__handler_8c.html#a0402f3caad23eb2e1310076ccc2b952a" title=" " alt="" coords="496,381,712,422"/>
+<area shape="rect" id="node8" href="$oem__1s__handler_8c.html#a164ffb34d388c7b188895b77da797b1f" title=" " alt="" coords="233,107,427,149"/>
+<area shape="rect" id="node9" href="$oem__1s__handler_8c.html#aad2fb3b59d2eb5f86af4a4e76f096405" title=" " alt="" coords="245,56,415,83"/>
+<area shape="rect" id="node11" href="$oem__1s__handler_8c.html#a4a575add42842bdab9a01a5040118a08" title=" " alt="" coords="227,225,433,266"/>
+<area shape="rect" id="node12" href="$oem__1s__handler_8c.html#a7a69c388f4b929749e7cc05252d888b5" title=" " alt="" coords="249,291,411,317"/>
+<area shape="rect" id="node13" href="$oem__1s__handler_8c.html#ae90766f85cb75dba15c2f9c41f03fafe" title=" " alt="" coords="232,341,428,368"/>
+<area shape="rect" id="node14" href="$oem__1s__handler_8c.html#a2248bb151867add6b06fa952c19fa12d" title=" " alt="" coords="240,392,420,419"/>
+<area shape="rect" id="node15" href="$oem__1s__handler_8c.html#a2bef9d25ac534d151590fabfe2de9efa" title=" " alt="" coords="235,443,425,469"/>
+<area shape="rect" id="node16" href="$oem__1s__handler_8c.html#a21d28827244c595b362101afbf9f7eea" title=" " alt="" coords="212,493,448,520"/>
+<area shape="rect" id="node17" href="$oem__1s__handler_8c.html#a0c51ddca59f61cabd7cb84b40c7aa8f5" title=" " alt="" coords="230,544,430,571"/>
+<area shape="rect" id="node18" href="$oem__1s__handler_8c.html#a9457f2c32a23a1e72a0ae878f2db2f00" title=" " alt="" coords="257,661,403,688"/>
+<area shape="rect" id="node20" href="$oem__1s__handler_8c.html#a77dcf26f0d688965be1be8de64627673" title=" " alt="" coords="241,712,419,739"/>
+<area shape="rect" id="node23" href="$oem__1s__handler_8c.html#a37936a7ca3e0bb21b4f5065a3b1c6dcb" title=" " alt="" coords="229,763,431,805"/>
+<area shape="rect" id="node25" href="$oem__1s__handler_8c.html#a3dbbc6738d949cd706b5f0ede43389ac" title=" " alt="" coords="241,945,419,972"/>
+<area shape="rect" id="node28" href="$oem__1s__handler_8c.html#a1a7676f50ee1fce8aab17ee54bec51fb" title=" " alt="" coords="243,829,417,870"/>
+<area shape="rect" id="node29" href="$oem__1s__handler_8c.html#a137a053076656e7c4770120055d943ca" title=" " alt="" coords="257,895,403,921"/>
+<area shape="rect" id="node30" href="$oem__1s__handler_8c.html#a614d76ffa342246ad6a29c12203a4278" title=" " alt="" coords="229,595,431,637"/>
+<area shape="rect" id="node31" href="$oem__1s__handler_8c.html#a85b9f72f0c20b7a8dcadd8632d92ac10" title=" " alt="" coords="230,996,430,1023"/>
+<area shape="rect" id="node32" href="$oem__1s__handler_8c.html#a80f26e50b2e804c132b37ac9fa359d18" title=" " alt="" coords="221,1047,439,1073"/>
+<area shape="rect" id="node33" href="$oem__1s__handler_8c.html#a9e1f55469d5c150ce44db76d1c3d1472" title=" " alt="" coords="254,1097,406,1124"/>
+<area shape="rect" id="node35" href="$oem__1s__handler_8c.html#a5bef852003f6cad2b45f61a2aaebad56" title=" " alt="" coords="251,1148,409,1175"/>
+<area shape="rect" id="node37" href="$oem__1s__handler_8c.html#a36af624ce91996f8cc0d6cfed4c98a9a" title=" " alt="" coords="229,1199,431,1225"/>
+<area shape="rect" id="node40" href="$oem__1s__handler_8c.html#a518d2bd91b002636e252f7887a5412e2" title=" " alt="" coords="230,1250,430,1291"/>
+<area shape="rect" id="node42" href="$oem__1s__handler_8c.html#a04ff5e693ed4d8fb0d389cfba5df7931" title=" " alt="" coords="219,1316,441,1343"/>
+<area shape="rect" id="node3" href="$util__sys_8c.html#ae6b405b3033215963e8da70d5aba11a6" title=" " alt="" coords="515,5,693,32"/>
+<area shape="rect" id="node5" href="$sensor_8c.html#af2fdef4279bdfbc554c6486ff50c422a" title=" " alt="" coords="764,388,899,415"/>
+<area shape="rect" id="node6" href="$sensor_8c.html#a88f54d32e527f667e809afe345f3d764" title=" " alt="" coords="964,359,1071,385"/>
+<area shape="rect" id="node7" href="$sensor_8c.html#a17b109696bd768cea72e29cf7389f308" title=" " alt="" coords="951,410,1084,451"/>
+<area shape="rect" id="node10" href="$util__sys_8c.html#af66cdcb3de0fa1d759220498b7d0fb45" title=" " alt="" coords="547,56,661,83"/>
+<area shape="rect" id="node19" href="$hal__gpio_8c.html#af700ee50de3d113e223c2b011c41f966" title=" " alt="" coords="569,661,639,688"/>
+<area shape="rect" id="node21" href="$hal__gpio_8c.html#aba20fe1f621c6477f568ea944e37f5c4" title=" " alt="" coords="792,737,871,764"/>
+<area shape="rect" id="node22" href="$hal__gpio_8c.html#ab1b576cbfd9eddaaf57a5aa5fc383dd1" title=" " alt="" coords="569,763,639,789"/>
+<area shape="rect" id="node24" href="$power__status_8c.html#a369e012ac6767265105b58fbe3ee2d5c" title=" " alt="" coords="529,813,679,840"/>
+<area shape="rect" id="node26" href="$hal__i2c_8c.html#a63747236a7300f9f9db70f5f14fc5621" title=" " alt="" coords="567,945,641,972"/>
+<area shape="rect" id="node27" href="$hal__i2c_8c.html#abe0116512c803f4b7188c17345eb998f" title=" " alt="" coords="760,945,903,972"/>
+<area shape="rect" id="node34" href="$util__sys_8c.html#aa9dac9431d71ccff186dacbfac0442d4" title=" " alt="" coords="524,1081,684,1108"/>
+<area shape="rect" id="node36" href="$util__sys_8c.html#a9fb5c86d5d710930d22e6d9d5b29ecd6" title=" " alt="" coords="530,1133,678,1174"/>
+<area shape="rect" id="node38" href="$sensor_8c.html#a254481b5d30d7b182e368c57ff208184" title=" " alt="" coords="536,1249,672,1276"/>
+<area shape="rect" id="node39" href="$sensor_8c.html#a943433215e208bf552a04105d8d7b320" title=" " alt="" coords="537,1199,671,1225"/>
+<area shape="rect" id="node41" href="$power__status_8c.html#aabc3ff81629af1ec305612399750fbcc" title=" " alt="" coords="529,1300,679,1327"/>
+</map>

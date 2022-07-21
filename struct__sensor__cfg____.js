@@ -1,0 +1,25 @@
+var struct__sensor__cfg____ =
+[
+    [ "access_checker", "struct__sensor__cfg____.html#a9bd04709456886a879c05b14676f1f2b", null ],
+    [ "arg0", "struct__sensor__cfg____.html#a405ea1ea2bc69e4de8ccf970864304b4", null ],
+    [ "arg1", "struct__sensor__cfg____.html#a741c836c13ce388a6e16bd116962bdf3", null ],
+    [ "cache", "struct__sensor__cfg____.html#a5075294e981c8018211dce45027dbdf1", null ],
+    [ "cache_status", "struct__sensor__cfg____.html#af02a845afc6ed223450b38178153315b", null ],
+    [ "init", "struct__sensor__cfg____.html#a5c7e29043a9d8ac7ba232aba70cad690", null ],
+    [ "init_args", "struct__sensor__cfg____.html#a760dea0b1dbf964ee69332995ee13d60", null ],
+    [ "is_enable_polling", "struct__sensor__cfg____.html#a49580d8884227a9968ac56319bb38e31", null ],
+    [ "num", "struct__sensor__cfg____.html#a64f4071def32286b7d2758122eee4a2a", null ],
+    [ "offset", "struct__sensor__cfg____.html#a342bd571a743468e7b59906f967ffeda", null ],
+    [ "poll_time", "struct__sensor__cfg____.html#a9746bade632d54f86cae131eb3df06cc", null ],
+    [ "port", "struct__sensor__cfg____.html#a69af6c1ac0ae1d561ac5c02026437d40", null ],
+    [ "post_sensor_read_args", "struct__sensor__cfg____.html#a9002c15188dee9ce92c88495f1ae0093", null ],
+    [ "post_sensor_read_hook", "struct__sensor__cfg____.html#ac79e7d2823ebc6ad9974a676df230892", null ],
+    [ "pre_sensor_read_args", "struct__sensor__cfg____.html#a7794b09f3c86319b1c92f77fdf82efc7", null ],
+    [ "pre_sensor_read_hook", "struct__sensor__cfg____.html#aa366440ab3108a27d05170b7742cc6c3", null ],
+    [ "priv_data", "struct__sensor__cfg____.html#a1488adbb45a305877411e02a683d0eb6", null ],
+    [ "read", "struct__sensor__cfg____.html#ad941807c76d8beaeb1f768ebec1d2b5a", null ],
+    [ "retry", "struct__sensor__cfg____.html#a72978b8e7e7d4be5adda1b53d8dc9ea2", null ],
+    [ "sample_count", "struct__sensor__cfg____.html#a2c5798fc4edfa9cfdf769fa904b3b149", null ],
+    [ "target_addr", "struct__sensor__cfg____.html#aa6f0fb723d13a3506452c4639aab1d28", null ],
+    [ "type", "struct__sensor__cfg____.html#ac0452bebd1253a7999dd5a4ec62eedcc", null ]
+];

@@ -1,0 +1,10 @@
+<map id="init_power_off_thread" name="init_power_off_thread">
+<area shape="rect" id="node1" title=" " alt="" coords="5,5,151,32"/>
+<area shape="rect" id="node2" href="$plat__power__seq_8c.html#a3365a4a6bd242d6ec1356f6f0f36e7cb" title=" " alt="" coords="199,5,385,32"/>
+<area shape="rect" id="node3" href="$hal__gpio_8c.html#ab1b576cbfd9eddaaf57a5aa5fc383dd1" title=" " alt="" coords="799,5,869,32"/>
+<area shape="rect" id="node5" href="$plat__power__seq_8c.html#aa64f61d9a124460aa9415165561b9dc0" title=" " alt="" coords="433,31,560,57"/>
+<area shape="rect" id="node4" href="$hal__gpio_8c.html#aba20fe1f621c6477f568ea944e37f5c4" title=" " alt="" coords="917,5,996,32"/>
+<area shape="rect" id="node6" href="$plat__power__seq_8c.html#af3949c1eadc34bafbb2605bcc4ea1706" title=" " alt="" coords="610,31,749,57"/>
+<area shape="rect" id="node7" href="$plat__power__seq_8c.html#a11932a5169acab282997c627fb499d33" title=" " alt="" coords="608,81,751,108"/>
+<area shape="rect" id="node8" href="$hal__gpio_8c.html#af700ee50de3d113e223c2b011c41f966" title=" " alt="" coords="799,81,869,108"/>
+</map>

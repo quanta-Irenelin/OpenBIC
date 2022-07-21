@@ -1,0 +1,11 @@
+<map id="common/dev/include/snoop.h" name="common/dev/include/snoop.h">
+<area shape="rect" id="node1" title=" " alt="" coords="643,5,786,47"/>
+<area shape="rect" id="node2" href="$snoop_8c.html" title=" " alt="" coords="5,109,152,136"/>
+<area shape="rect" id="node3" href="$power__status_8c.html" title=" " alt="" coords="176,109,357,136"/>
+<area shape="rect" id="node4" href="$oem__1s__handler_8c.html" title=" " alt="" coords="381,102,528,143"/>
+<area shape="rect" id="node5" href="$gt-cc_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="553,102,703,143"/>
+<area shape="rect" id="node6" href="$wc-mb_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="727,102,878,143"/>
+<area shape="rect" id="node7" href="$yv35-bb_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="902,102,1071,143"/>
+<area shape="rect" id="node8" href="$yv35-cl_2src_2platform_2plat__isr_8c.html" title=" " alt="" coords="1096,102,1261,143"/>
+<area shape="rect" id="node9" href="$yv35-hd_2src_2platform_2plat__init_8c.html" title=" " alt="" coords="1285,95,1424,151"/>
+</map>
