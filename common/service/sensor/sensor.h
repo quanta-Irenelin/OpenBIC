@@ -83,6 +83,7 @@ enum SENSOR_DEV {
 	sensor_dev_raa229621 = 0x15,
 	sensor_dev_nct7718w = 0x16,
 	sensor_dev_ltc4286 = 0x17,
+	sensor_dev_tca9555 = 0x18,
 	sensor_dev_max
 };
 
@@ -100,6 +101,13 @@ struct tca9548 {
 	uint8_t addr;
 	uint8_t chan;
 };
+
+struct tca9555 {
+	uint8_t regs;
+	uint8_t gpio_direction;
+};
+
+
 
 static inline int calculate_accurate_MBR(uint8_t sensor_num, int val)
 { // for better accuracy, enlarge SDR to two byte scale
@@ -279,6 +287,10 @@ typedef struct _pmic_init_arg {
 typedef struct _ina233_init_arg_ {
 	bool is_init;
 } ina233_init_arg;
+
+typedef struct _tca9555_init_arg_ {
+	bool is_init;
+} tca9555_init_arg;
 
 typedef struct _max16550a_init_arg_ {
 	float r_load;
