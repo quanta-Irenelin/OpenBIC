@@ -13,6 +13,7 @@ bool tca9555_config_gpio_direction(uint8_t sensor_num, void *args)
 		return false;
 	}
 
+	sensor_cfg *cfg = &sensor_config[sensor_config_index_map[sensor_num]];
 	struct tca9555 *p = (struct tca9555 *)args;
 
 	uint8_t retry = 5;
@@ -64,7 +65,7 @@ bool tca9555_write(uint8_t sensor_num, int *reading)
 
 	uint8_t retry = 5;
 	I2C_MSG msg = { 0 };
-
+	
 	msg.bus = sensor_config[sensor_config_index_map[sensor_num]].port; //i2c
 	msg.target_addr = sensor_config[sensor_config_index_map[sensor_num]].target_addr;// i/o expander address
 	msg.tx_len = 1;
