@@ -6,6 +6,9 @@
 
 #define RF_FRU_PORT 0x02
 #define RF_FRU_ADDR 0xA8 >> 1
+#define RF_mux_present 1
+#define RF_FRU_mux_addr 0xe2 >> 1
+#define RF_FRU_mux_channel 2
 
 #define DPV2_FRU_PORT 0x08
 #define DPV2_FRU_ADDR 0x51

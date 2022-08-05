@@ -22,9 +22,6 @@ const EEPROM_CFG plat_fru_config[] = {
 		FRU_START,
 		FRU_SIZE,
 	},
-};
-
-const EEPROM_CFG plat_rb_fru_config[] = {
 	{
 		NV_ATMEL_24C128,
 		RF_FRU_ID,
@@ -33,28 +30,15 @@ const EEPROM_CFG plat_rb_fru_config[] = {
 		FRU_DEV_ACCESS_BYTE,
 		FRU_START,
 		FRU_SIZE,
+		RF_mux_present,
+		RF_FRU_mux_addr,
+		RF_FRU_mux_channel,
 	},
 };
 
 void pal_load_fru_config(void)
 {
 	memcpy(fru_config, plat_fru_config, sizeof(plat_fru_config));
-	mux_fru_read();
-	memcpy(fru_config, plat_rb_fru_config, sizeof(plat_rb_fru_config));
 }
 
-bool mux_fru_read(void)
-{	
-	uint8_t retry = 5;
-	I2C_MSG msg;
-	memset(&msg, 0, sizeof(I2C_MSG));
-	msg.bus = RF_FRU_PORT;
-	/* change address to 7-bit */
-	msg.target_addr = (0xe2 >> 1);
-	msg.tx_len = 1;
-	msg.data[0] = 2;
-	if (i2c_master_write(&msg, retry))
-		return false;
 
-	return true;
-}
