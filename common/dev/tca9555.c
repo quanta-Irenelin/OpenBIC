@@ -18,11 +18,11 @@ bool tca9555_config_gpio_direction(uint8_t sensor_num, void *args)
 	uint8_t retry = 5;
 	I2C_MSG msg = { 0 };
 
-	msg.bus = cfg->port;
+	//msg.bus = cfg->port;
 	/* change address to 7-bit */
 	msg.target_addr = p->regs;
 	msg.tx_len = 1;
-	msg.data[0] = p->gpio_direction;
+	msg.data[0] = p -> gpio_direction;
 
 	if (i2c_master_write(&msg, retry))
 		return false;

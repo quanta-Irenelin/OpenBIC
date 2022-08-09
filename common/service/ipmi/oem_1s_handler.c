@@ -1584,6 +1584,27 @@ __weak void OEM_1S_GET_APML_RESPONSE(ipmi_msg *msg)
 }
 #endif
 
+__weak void OEM_1S_GET_RF_GPIO_STATUS(ipmi_msg *msg)
+{
+	if (msg == NULL) {
+		return;
+	}
+
+	if (msg->data_len != 0) {
+		msg->completion_code = CC_INVALID_LENGTH;
+		return;
+	}
+
+	msg->data[0] = 0xAB;
+	msg->data[1] = 0xCD;
+	msg->data[2] = 0xFF;
+	printf("test\n");
+
+	msg->data_len = 3;
+	msg->completion_code = CC_SUCCESS;
+	return;
+}
+
 void IPMI_OEM_1S_handler(ipmi_msg *msg)
 {
 	if (msg == NULL) {
@@ -1718,6 +1739,9 @@ void IPMI_OEM_1S_handler(ipmi_msg *msg)
 	case CMD_OEM_1S_BRIDGE_I2C_MSG_BY_COMPNT:
 		OEM_1S_BRIDGE_I2C_MSG_BY_COMPNT(msg);
 		break;
+	case CMD_OEM_1S_GET_RF_GPIO_STATUS:
+		OEM_1S_GET_RF_GPIO_STATUS(msg);
+		break;
 	default:
 		printf("Invalid OEM message, netfn(0x%x) cmd(0x%x)\n", msg->netfn, msg->cmd);
 		msg->data_len = 0;
@@ -1726,3 +1750,5 @@ void IPMI_OEM_1S_handler(ipmi_msg *msg)
 	}
 	return;
 }
+
+
