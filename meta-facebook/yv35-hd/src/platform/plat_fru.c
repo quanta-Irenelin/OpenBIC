@@ -30,9 +30,9 @@ const EEPROM_CFG plat_fru_config[] = {
 		FRU_DEV_ACCESS_BYTE,
 		FRU_START,
 		FRU_SIZE,
-		RF_mux_present,
-		RF_FRU_mux_addr,
-		RF_FRU_mux_channel,
+		RF_MUX_PRSNT,
+		RF_FRU_MUX_ADDR,
+		RF_FRU_MUX_CHAN,
 	},
 };
 
@@ -40,5 +40,6 @@ void pal_load_fru_config(void)
 {
 	memcpy(fru_config, plat_fru_config, sizeof(plat_fru_config));
 }
+
 
 
