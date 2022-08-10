@@ -49,9 +49,10 @@ uint8_t tca9555_read(uint8_t sensor_num, int *reading)
 	if (i2c_master_read(&msg, retry))
 		return SENSOR_FAIL_TO_ACCESS;
 
-	sensor_val *sval = (sensor_val *)reading;
-	sval->integer = msg.data[0];
-	sval->fraction = 0;
+	gpio_val *gval = (gpio_val *)reading;
+	gval-> regs = msg.data[0];
+	gval-> gpio_direction = 0;
+	gval-> gpio_status = 0;
 
 	return SENSOR_READ_SUCCESS;
 }

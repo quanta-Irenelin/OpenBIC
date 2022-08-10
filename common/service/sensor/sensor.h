@@ -102,10 +102,11 @@ struct tca9548 {
 	uint8_t chan;
 };
 
-struct tca9555 {
+typedef struct _tca9555_val {
 	uint8_t regs;
 	uint8_t gpio_direction;
-};
+	uint8_t gpio_status;
+} gpio_val;
 
 
 
