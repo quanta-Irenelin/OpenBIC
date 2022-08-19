@@ -36,6 +36,7 @@ void control_power_on_sequence()
 
 	if (is_power_on == true) {
 		gpio_set(PWRGD_CARD_PWROK, POWER_ON);
+		printf("set PWRGD_CARD_PWROK on (2)");
 		printf("[%s] power on success\n", __func__);
 	} else {
 		printf("[%s] power on fail\n", __func__);

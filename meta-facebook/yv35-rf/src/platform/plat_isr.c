@@ -22,6 +22,7 @@ void control_power_sequence()
 			// If power on sequence not finished or not started , abort power off thread before creating power on thread
 			abort_power_thread();
 			init_power_on_thread();
+			printf("set PWRGD_CARD_PWROK on (1)");
 		} else {
 			// If the last stage of power on sequence already power on , no need to recheck power on sequence
 			// Update the flag of power on sequence number
@@ -93,17 +94,18 @@ void ISR_MB_DC_STATE()
 void ISR_DC_STATE()
 {
 	set_DC_status(PWRGD_CARD_PWROK);
-
+	printf("trigger PWRGD_CARD_PWROK ISR");
 	// Set a access flag after DC on 5 secs
 	if (get_DC_status() == true) {
 		gpio_set(LED_CXL_POWER, GPIO_HIGH);
 		k_work_schedule(&set_DC_on_5s_work, K_SECONDS(DC_ON_5_SECOND));
-
+		printf("set dc status\n");
 	} else {
 		gpio_set(LED_CXL_POWER, GPIO_LOW);
 		if (k_work_cancel_delayable(&set_DC_on_5s_work) != 0) {
 			printf("Cancel set dc off delay work fail\n");
 		}
+		printf("set dc delay status\n");
 		set_DC_on_delayed_status();
 	}
 }
