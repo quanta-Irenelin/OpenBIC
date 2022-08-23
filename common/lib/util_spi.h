@@ -26,14 +26,13 @@ enum DEVICE_POSITIONS {
 
 uint8_t fw_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end,
 		  uint8_t flash_position);
-uint8_t fw_update_cxl(uint8_t flash_position);
+uint8_t fw_update_cxl(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end);
 
 uint8_t get_fw_sha256(uint8_t *msg_buf, uint32_t offset, uint32_t length, uint8_t flash_position);
 
 int pal_get_bios_flash_position();
 bool pal_switch_bios_spi_mux(int gpio_status);
 int pal_get_cxl_flash_position();
-bool pal_switch_cxl_spi_mux();
 
 enum FIRMWARE_UPDATE_RETURN_CODE {
 	FWUPDATE_SUCCESS,
