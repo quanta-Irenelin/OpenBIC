@@ -19,5 +19,5 @@ void ISR_PVDDQ_AB_POWER_GOOD_LOST();
 void ISR_PVDDQ_CD_POWER_GOOD_LOST();
 void ISR_PVTT_AB_POWER_GOOD_LOST();
 void ISR_PVTT_CD_POWER_GOOD_LOST();
-
+void degug_print();
 #endif

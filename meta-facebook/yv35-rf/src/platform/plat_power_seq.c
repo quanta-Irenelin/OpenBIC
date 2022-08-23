@@ -33,10 +33,11 @@ void control_power_on_sequence()
 {
 	bool is_power_on = false;
 	is_power_on = power_on_handler(ASIC_POWER_ON_STAGE);
+	printf("ISR control_power_on_sequence\n");
 
 	if (is_power_on == true) {
 		gpio_set(PWRGD_CARD_PWROK, POWER_ON);
-		printf("set PWRGD_CARD_PWROK on (2)");
+		printf("set PWRGD_CARD_PWROK on (2)\n");
 		printf("[%s] power on success\n", __func__);
 	} else {
 		printf("[%s] power on fail\n", __func__);
@@ -49,6 +50,7 @@ void control_power_off_sequence()
 	// Inform CraterLake expansion board power off
 	gpio_set(PWRGD_CARD_PWROK, POWER_OFF);
 	gpio_set(ASIC_DEV_RST_N, POWER_OFF);
+	printf("gpio_set ASIC_DEV_RST_N low\n");
 
 	// Disable i2c synchronized during error recovery/ASIC i2c pin
 	gpio_set(I2CS_SRSTB_GPIO, HIGH_INACTIVE);

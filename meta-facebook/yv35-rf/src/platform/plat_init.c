@@ -21,11 +21,15 @@ void pal_set_sys_status()
 {
 	set_MB_DC_status(FM_POWER_EN);
 	set_DC_status(PWRGD_CARD_PWROK);
-	set_DC_on_delayed_status();
-	set_DC_off_delayed_status();
+	if(gpio_get(PWRGD_CARD_PWROK) == GPIO_HIGH){
+		set_DC_on_delayed_status();
+	}
 	control_power_sequence();
-
-
+	while(1){
+		int gpio_stat = gpio_get(PWRGD_CARD_PWROK);
+		printf("Gpio 33 is %d\n", gpio_stat);
+		k_msleep(1000);
+	}
 }
 
 void pal_post_init()
@@ -33,6 +37,7 @@ void pal_post_init()
 	k_usleep(100);
 
 	gpio_set(ASIC_DEV_RST_N, GPIO_HIGH);
+	printf("post init ASIC_DEV_RST_N set high\n");
 }
 
 #define DEF_PROJ_GPIO_PRIORITY 61

@@ -22,20 +22,24 @@ void control_power_sequence()
 			// If power on sequence not finished or not started , abort power off thread before creating power on thread
 			abort_power_thread();
 			init_power_on_thread();
-			printf("set PWRGD_CARD_PWROK on (1)");
+			printf("(1)\n");
+			printf("set PWRGD_CARD_PWROK on (1)\n");
 		} else {
 			// If the last stage of power on sequence already power on , no need to recheck power on sequence
 			// Update the flag of power on sequence number
+			printf("(2)\n");
 			set_power_on_seq(NUMBER_OF_POWER_ON_SEQ);
 		}
 	} else { // CraterLake DC off
 		if (gpio_get(CLK_100M_OSC_EN) == HIGH_ACTIVE) {
 			// If power off sequence not finished or not started , abort power on thread before creating power off thread
+			printf("(3)\n");
 			abort_power_thread();
 			init_power_off_thread();
 		} else {
 			// If the last stage of power off sequence already power off , no need to recheck power off sequence
 			// Update the flag of power off sequence number
+			printf("(4)\n");
 			set_power_off_seq(NUMBER_OF_POWER_OFF_SEQ);
 		}
 	}
@@ -88,13 +92,14 @@ void check_power_abnormal(uint8_t power_good_gpio_num, uint8_t control_power_gpi
 void ISR_MB_DC_STATE()
 {
 	set_MB_DC_status(FM_POWER_EN);
+	printf("Trigger 32 ISR\n");
 	control_power_sequence();
 }
 
 void ISR_DC_STATE()
 {
 	set_DC_status(PWRGD_CARD_PWROK);
-	printf("trigger PWRGD_CARD_PWROK ISR");
+	printf("trigger 33 ISR\n");
 	// Set a access flag after DC on 5 secs
 	if (get_DC_status() == true) {
 		gpio_set(LED_CXL_POWER, GPIO_HIGH);
