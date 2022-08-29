@@ -5,7 +5,7 @@
 
 /*  define config for sensors  */
 #define TMP75_MB_ADDR (0x92 >> 1)
-#define TMP75_ASIC_ADDR (0x98 >> 1)
+#define TMP75_ASIC_ADDR (0xF8 >> 1)
 #define ASIC_ADDR (0x00 >> 1) // TBU
 #define INA233_12V_ADDR (0x8A >> 1)
 #define INA233_3V3_ADDR (0x80 >> 1)
