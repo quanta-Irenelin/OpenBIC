@@ -10,6 +10,8 @@ typedef struct _isl69254iraz_t_pre_arg_ {
 **************************************************************************************************/
 extern adc_asd_init_arg adc_asd_init_args[];
 extern ina233_init_arg ina233_init_args[];
+extern ina230_init_arg SQ52205_init_args[];
+
 
 /**************************************************************************************************
  *  PRE-HOOK/POST-HOOK ARGS
@@ -21,5 +23,6 @@ extern isl69254iraz_t_pre_arg isl69254iraz_t_pre_read_args[];
  **************************************************************************************************/
 bool pre_ina233_read(uint8_t sensor_num, void *args);
 bool pre_isl69254iraz_t_read(uint8_t sensor_num, void *args);
+bool pre_ina231_read(uint8_t sensor_num, void *args);
 
 #endif
