@@ -52,6 +52,8 @@ void control_power_on_sequence()
 
 	if (is_power_on == true) {
 		gpio_set(PWRGD_CARD_PWROK, POWER_ON);
+		k_usleep(100);
+		control_power_stage(ENABLE_POWER_MODE, ASIC_DEV_RST_N);
 		printf("[%s] power on success\n", __func__);
 	} else {
 		printf("[%s] power on fail\n", __func__);
@@ -238,7 +240,6 @@ bool power_on_handler(uint8_t initial_stage)
 			control_stage = BOARD_POWER_ON_STAGE;
 			break;
 		case BOARD_POWER_ON_STAGE:
-			control_power_stage(ENABLE_POWER_MODE, ASIC_DEV_RST_N);
 
 			// Enable i2c synchronized during error recovery/ASIC i2c pin
 			gpio_set(I2CS_SRSTB_GPIO, HIGH_ACTIVE);
