@@ -38,6 +38,33 @@ static srm_protocol_ver proto_ver = ROM_PROTO_UNKOWN;
 
 /**
 * @brief
+*   Write byte to device
+* @param[in] file  - file descriptor
+* @param[in] value - value to write
+* @return
+*   Success or failure
+* @note
+*/
+int i2c_write_byte(unsigned char command)
+{
+    int ret = SUCCESS;
+    int retry = 5;
+    I2C_MSG msg = {0};
+	msg.bus = 1;
+	msg.target_addr = 0x27;
+	msg.tx_len = 1;
+	msg.rx_len = 2;
+	msg.data[0] = command;
+
+    if (i2c_master_write(&msg, retry)) {
+        printf("Failed to 0x%02x write\n",command);
+        return -1;
+    }
+    return ret;
+}
+
+/**
+* @brief
 *   Send Reset command
 * @param[in]    - None
 * @return
@@ -230,9 +257,9 @@ int srm_send_block(uint8_t *data)
 
 /**
 * @brief
-*   Processing Side Band Recovery
+*   Send Binary image
 *
-* @param[in]    - None
+* @param[in] image_path - image path string
 *
 * @return
 *   SUCCESS or Error code
@@ -240,9 +267,148 @@ int srm_send_block(uint8_t *data)
 * @note
 *
 */
+int srm_send_image(char *image_path)
+{
+    int ret = SUCCESS;
+    unsigned char status[6] = {0};
+    int i = 0;
+    unsigned int block_total_cnt = 0;
+    /* Initialize State */
+    srm_reset();
+    /* Check if device is ready */
+    srm_get_status(status, SRM_STATE_IDLE);
+    /* Get image size */
+    if (access(image_path, F_OK) == FAIL){
+        printf("ERROR 0x%0x: image not found. PATH: %s\n", ENOFILE, image_path);
+        return -ENOFILE;
+    }
+    struct stat st;
+    stat(image_path, &st);
+    unsigned int size = st.st_size;
+
+    /* pboot uses word length whereas SRA uses byte length */
+    if (to_boot){
+        size = size >> 2;
+        /* Account for dword unaligned sizes */
+        if ((st.st_size % 4) > 0){
+            size++;
+        }
+    }
+
+    /* calculate packet size for SMBUS protocol */
+    block_total_cnt = st.st_size / BLOCK_TX_LENGTH;
+    if ((st.st_size % BLOCK_TX_LENGTH) > 0){
+        block_total_cnt++;
+    }
+
+    /* Go into WRITE state */
+    i2c_write_byte(SRM_CMD_BYTE_IMGWRITE);
+    /* Poll Status */
+    srm_get_status(status, SRM_STATE_WRITE);
+    printf("WRITE STATE\n");
+
+    /* Send length of image in dword units for pboot, in bytes for SRA */
+    char *p = (char *)&size;
+    printf("Sending Image Size 0x%08x [0x%02x][0x%02x]", size, p[0], p[1]);
+    i2c_write_byte(p[0]);
+    i2c_write_byte(p[1]);
+    if (!to_boot){
+        printf("[0x%02x][0x%02x]", p[2], p[3]);
+        i2c_write_byte(p[2]);
+        i2c_write_byte(p[3]);
+    }
+    printf("\n");
+
+    /* Open FW update image */
+    FILE *fp = fopen(image_path, "rb");
+    unsigned int written = 0;
+    /* Send FW Binary in blocks */
+    for (i = 0; i < block_total_cnt; i++)
+    {
+        unsigned int len = BLOCK_TX_LENGTH;
+        if (to_boot){
+            if (len > ((size << 2) - written)){
+                len = ((size << 2) - written);
+            }
+        }else{
+            if (len > (size - written)){
+                len = (size - written);
+            }
+        }
+        /*
+        *  Device side HW Rx buffer size is 128B so we need to check device status.
+        *  if we keeps sending data while the device is busy, then HW fifo overflows and lost data sync
+        */
+        unsigned int device_index = 0;
+        srm_get_status(status, SRM_STATE_WRITE);
+        device_index = to_boot ?
+                        (((unsigned int)status[3] << 8) + status[2]) << 2 :
+                        (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
+                        ((unsigned int)status[3] << 8) + status[2]);
+
+        unsigned char retry = 0;
+        while (device_index != written){
+            printf("device_index (0x%08x) is not matching with sending offset (0x%08x)\n", device_index, written);
+            if (retry++ >= 5){
+                printf("device is in wrong state\n");
+                return EFAIL;
+            }
+            sleep(WAIT_TIME_SEC);
+            srm_get_status(status, SRM_STATE_WRITE);
+            device_index = to_boot ?
+                            (((unsigned int)status[3] << 8) + status[2]) << 2 :
+                            (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
+                            ((unsigned int)status[3] << 8) + status[2]);
+        }
+
+        ret = srm_send_block(len);
+
+        if (ret < 0){
+            printf("ERROR %d: send block failed\n", ret);
+            return ret;
+        }
+        written += len;
+
+        if ((written % SRMBURN_PRINT_PERIOD) == 0){
+            printf("Tx: 0x%08x / 0x%08x\n", written, (unsigned int)st.st_size);
+        }
+    }
+
+    fclose(fp);
+    sleep(WAIT_TIME_SEC);
+    srm_get_status(status, 0);
+    printf("Finished Transfering %s\n", image_path);
+
+    if (!to_boot){
+        /* To wait last flash update time */
+        srm_get_status(status, SRM_STATE_WRITE);
+    }
+
+    /* Go into VERIFY state */
+    i2c_write_byte(SRM_CMD_BYTE_VERIFY);
+
+    /* Check if device is in VERIFY state */
+    srm_get_status(status, SRM_STATE_VERIFY);
+
+    /* Send EXEC command */
+    printf("Send cmd to go into EXEC state\n");
+    i2c_write_byte(SRM_CMD_BYTE_EXEC);
+    /* Wait for run updated app */
+    sleep(WAIT_TIME_SEC);
+
+    return ret;
+}
+
+/**
+* @brief
+*   Processing Side Band Recovery
+* @param[in]    - None
+* @return
+*   SUCCESS or Error code
+* @note
+*/
 int srm_run(void)
 {   
-
     int ret = 0;
     unsigned char status[6] = {0};
     to_boot = true;

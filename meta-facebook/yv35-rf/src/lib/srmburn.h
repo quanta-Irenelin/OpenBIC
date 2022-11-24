@@ -137,7 +137,7 @@ union i2c_smbus_data {
 int i2c_smbus_access(int file, char read_write, unsigned char command,
                      int size, union i2c_smbus_data *data);
 int i2c_smbus_read_byte(int file);
-int i2c_smbus_write_byte(int file, unsigned char value);
+int i2c_smbus_write_byte(unsigned char value);
 
 /* srm helper functions */
 int srm_smbus_init(char filename[40], int addr);
