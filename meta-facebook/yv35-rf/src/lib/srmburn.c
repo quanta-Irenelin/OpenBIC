@@ -11,6 +11,15 @@
 #include "srmburn.h"
 #include "plat_i2c.h"
 #include <drivers/disk.h>
+#include "util_spi.h"
+#include "libutil.h"
+
+
+#include <plat_power_seq.h>
+#include "hal_gpio.h"
+#include "util_spi.h"
+#include "util_sys.h"
+#include "plat_gpio.h"
 /* Print every 64KB write */
 #define SRMBURN_PRINT_PERIOD (64 * 1024)
 
@@ -255,149 +264,6 @@ int srm_send_block(uint8_t *data)
     return ret;
 }
 
-/**
-* @brief
-*   Send Binary image
-*
-* @param[in] image_path - image path string
-*
-* @return
-*   SUCCESS or Error code
-*
-* @note
-*
-*/
-int srm_send_image(char *image_path)
-{
-    int ret = SUCCESS;
-    unsigned char status[6] = {0};
-    int i = 0;
-    unsigned int block_total_cnt = 0;
-    /* Initialize State */
-    srm_reset();
-    /* Check if device is ready */
-    srm_get_status(status, SRM_STATE_IDLE);
-    /* Get image size */
-    if (access(image_path, F_OK) == FAIL){
-        printf("ERROR 0x%0x: image not found. PATH: %s\n", ENOFILE, image_path);
-        return -ENOFILE;
-    }
-    struct stat st;
-    stat(image_path, &st);
-    unsigned int size = st.st_size;
-
-    /* pboot uses word length whereas SRA uses byte length */
-    if (to_boot){
-        size = size >> 2;
-        /* Account for dword unaligned sizes */
-        if ((st.st_size % 4) > 0){
-            size++;
-        }
-    }
-
-    /* calculate packet size for SMBUS protocol */
-    block_total_cnt = st.st_size / BLOCK_TX_LENGTH;
-    if ((st.st_size % BLOCK_TX_LENGTH) > 0){
-        block_total_cnt++;
-    }
-
-    /* Go into WRITE state */
-    i2c_write_byte(SRM_CMD_BYTE_IMGWRITE);
-    /* Poll Status */
-    srm_get_status(status, SRM_STATE_WRITE);
-    printf("WRITE STATE\n");
-
-    /* Send length of image in dword units for pboot, in bytes for SRA */
-    char *p = (char *)&size;
-    printf("Sending Image Size 0x%08x [0x%02x][0x%02x]", size, p[0], p[1]);
-    i2c_write_byte(p[0]);
-    i2c_write_byte(p[1]);
-    if (!to_boot){
-        printf("[0x%02x][0x%02x]", p[2], p[3]);
-        i2c_write_byte(p[2]);
-        i2c_write_byte(p[3]);
-    }
-    printf("\n");
-
-    /* Open FW update image */
-    FILE *fp = fopen(image_path, "rb");
-    unsigned int written = 0;
-    /* Send FW Binary in blocks */
-    for (i = 0; i < block_total_cnt; i++)
-    {
-        unsigned int len = BLOCK_TX_LENGTH;
-        if (to_boot){
-            if (len > ((size << 2) - written)){
-                len = ((size << 2) - written);
-            }
-        }else{
-            if (len > (size - written)){
-                len = (size - written);
-            }
-        }
-        /*
-        *  Device side HW Rx buffer size is 128B so we need to check device status.
-        *  if we keeps sending data while the device is busy, then HW fifo overflows and lost data sync
-        */
-        unsigned int device_index = 0;
-        srm_get_status(status, SRM_STATE_WRITE);
-        device_index = to_boot ?
-                        (((unsigned int)status[3] << 8) + status[2]) << 2 :
-                        (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
-                        ((unsigned int)status[3] << 8) + status[2]);
-
-        unsigned char retry = 0;
-        while (device_index != written){
-            printf("device_index (0x%08x) is not matching with sending offset (0x%08x)\n", device_index, written);
-            if (retry++ >= 5){
-                printf("device is in wrong state\n");
-                return EFAIL;
-            }
-            sleep(WAIT_TIME_SEC);
-            srm_get_status(status, SRM_STATE_WRITE);
-            device_index = to_boot ?
-                            (((unsigned int)status[3] << 8) + status[2]) << 2 :
-                            (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
-                            ((unsigned int)status[3] << 8) + status[2]);
-        }
-
-        ret = srm_send_block(len);
-
-        if (ret < 0){
-            printf("ERROR %d: send block failed\n", ret);
-            return ret;
-        }
-        written += len;
-
-        if ((written % SRMBURN_PRINT_PERIOD) == 0){
-            printf("Tx: 0x%08x / 0x%08x\n", written, (unsigned int)st.st_size);
-        }
-    }
-
-    fclose(fp);
-    sleep(WAIT_TIME_SEC);
-    srm_get_status(status, 0);
-    printf("Finished Transfering %s\n", image_path);
-
-    if (!to_boot){
-        /* To wait last flash update time */
-        srm_get_status(status, SRM_STATE_WRITE);
-    }
-
-    /* Go into VERIFY state */
-    i2c_write_byte(SRM_CMD_BYTE_VERIFY);
-
-    /* Check if device is in VERIFY state */
-    srm_get_status(status, SRM_STATE_VERIFY);
-
-    /* Send EXEC command */
-    printf("Send cmd to go into EXEC state\n");
-    i2c_write_byte(SRM_CMD_BYTE_EXEC);
-    /* Wait for run updated app */
-    sleep(WAIT_TIME_SEC);
-
-    return ret;
-}
 
 /**
 * @brief
@@ -436,4 +302,54 @@ int srm_run(void)
     // ret = srm_send_image(arguments.fw_img_path);
 
     return ret;
+}
+
+uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end)
+{
+	static bool is_init = 0;
+	static uint8_t *txbuf = NULL;
+	static uint32_t buf_offset = 0;
+	uint32_t ret = 0;
+    set_CXL_update_status(POWER_ON);
+    srm_reset();
+    i2c_write_byte(SRM_CMD_BYTE_IMGWRITE);
+	if (!is_init) {
+		SAFE_FREE(txbuf);
+		txbuf = (uint8_t *)malloc(128);
+		if (txbuf == NULL) { // Retry alloc
+			k_msleep(100);
+			txbuf = (uint8_t *)malloc(128);
+		}
+		if (txbuf == NULL) {
+			printf("i2c index failed to allocate txbuf");
+			return FWUPDATE_OUT_OF_HEAP;
+		}
+		is_init = 1;
+		buf_offset = 0;
+		k_msleep(10);
+	}
+
+	memcpy(&txbuf[buf_offset], msg_buf, msg_len);
+	buf_offset += msg_len;
+
+	// i2c master write while collect 128 bytes data or BMC signal last image package with target | 0x80
+	if ((buf_offset == 128) || sector_end) {
+		uint8_t sector = 4;
+		uint32_t txbuf_offset;
+		uint32_t update_offset;
+
+		for (int i = 0; i < sector; i++) {
+			txbuf_offset = 32 * i;
+			update_offset = (offset / 128) * 128 + txbuf_offset;
+            srm_send_block(&txbuf[txbuf_offset]);
+            printf("update_offset 0x%02x",update_offset);
+		}
+		SAFE_FREE(txbuf);
+		k_msleep(10);
+		is_init = 0;
+
+		return ret;
+	}
+
+	return FWUPDATE_SUCCESS;
 }

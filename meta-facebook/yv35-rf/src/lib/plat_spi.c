@@ -105,3 +105,5 @@ uint8_t fw_update_cxl(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
 
 	return ret;
 }
+
+
