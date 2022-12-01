@@ -61,6 +61,7 @@
 #define SRM_STATE_VERIFY        0xB3       /**< VERIFY state */
 
 /* TWI command bytes from TWI master */
+#define SRM_CMD_BYTE_INIT   0x00       /**< INIT command */
 #define SRM_CMD_BYTE_IMGWRITE   0xA1       /**< IMGWRITE command */
 #define SRM_CMD_BYTE_VERIFY     0xA2       /**< VERIFY command */
 #define SRM_CMD_BYTE_EXEC       0xA3       /**< EXEC command */
@@ -141,14 +142,15 @@ int i2c_smbus_write_byte(unsigned char value);
 
 /* srm helper functions */
 int srm_smbus_init(char filename[40], int addr);
-int srm_get_status(unsigned char *status,
-                   unsigned char wait_state);
+int srm_get_status(unsigned char *status, unsigned char twi_cmd, unsigned char wait_state);
 int srm_discover_busses(void);
 int srm_send_image(char *image_path);
-int srm_send_block(uint8_t *data);
+int srm_send_block(unsigned char *status, uint8_t *data);
 int srm_run(void);
 int srm_reset(void);
 int srm_read_byte(void);
 int srm_write_byte(char data);
 uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end);
+uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end);
+
 #endif /* _SRM_H */

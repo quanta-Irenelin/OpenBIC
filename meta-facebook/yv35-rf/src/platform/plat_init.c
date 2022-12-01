@@ -40,8 +40,8 @@ void pal_set_sys_status()
 	control_power_sequence();
 	set_DC_on_delayed_status();
 	set_DC_off_delayed_status();
-	k_msleep(100000);
-	srm_run();
+	// k_msleep(20000);
+	// srm_run();
 }
 
 #define DEF_PROJ_GPIO_PRIORITY 61

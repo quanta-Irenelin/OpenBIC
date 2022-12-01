@@ -21,7 +21,7 @@
 #include "util_spi.h"
 #include "util_sys.h"
 #include "plat_gpio.h"
-
+#include "plat_spi.h"
 #define CXL_FLASH_TO_BIC 1
 #define CXL_FLASH_TO_CXL 0
 
