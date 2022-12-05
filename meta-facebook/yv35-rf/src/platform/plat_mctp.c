@@ -86,7 +86,7 @@ static mctp_smbus_port smbus_port[] = {
 
 mctp_route_entry mctp_route_tbl[] = {
 	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL0 },
-	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL1 },
+	// { MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL1 },
 };
 
 static mctp *find_mctp_by_smbus(uint8_t bus)
@@ -136,6 +136,40 @@ static void set_dev_endpoint(void)
 			msg.ext_params.smbus_ext_params.addr = p->addr;
 
 			msg.hdr.cmd = MCTP_CTRL_CMD_SET_ENDPOINT_ID;
+			msg.hdr.rq = 1;
+
+			msg.cmd_data = (uint8_t *)&req;
+			msg.cmd_data_len = sizeof(req);
+
+			msg.recv_resp_cb_fn = set_endpoint_resp_handler;
+			msg.timeout_cb_fn = set_endpoint_resp_timeout;
+			msg.timeout_cb_fn_args = p;
+
+			mctp_ctrl_send_msg(find_mctp_by_smbus(p->bus), &msg);
+		}
+	}
+}
+
+static void get_dev_endpoint(void)
+{
+	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
+		mctp_route_entry *p = mctp_route_tbl + i;
+
+		for (uint8_t j = 0; j < ARRAY_SIZE(smbus_port); j++) {
+			if (p->bus != smbus_port[j].conf.smbus_conf.bus)
+				continue;
+
+			printk("Prepare send endpoint bus 0x%x, addr 0x%x\n", p->bus, p->addr);
+			struct _set_eid_req req = { 0 };
+			req.op = SET_EID_REQ_OP_SET_EID;
+			req.eid = p->endpoint;
+
+			mctp_ctrl_msg msg;
+			memset(&msg, 0, sizeof(msg));
+			msg.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS;
+			msg.ext_params.smbus_ext_params.addr = p->addr;
+
+			msg.hdr.cmd = MCTP_CTRL_CMD_GET_ENDPOINT_ID;
 			msg.hdr.rq = 1;
 
 			msg.cmd_data = (uint8_t *)&req;
@@ -292,7 +326,7 @@ void plat_mctp_init(void)
 		mctp_start(p->mctp_inst);
 	}
 
-	set_dev_endpoint();
+	// set_dev_endpoint();
 	// /* Only send command to device when DC on */
 	// if (is_mb_dc_on())
 	// 	k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
@@ -313,9 +347,16 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 	return 0;
 }
 
+static int test_pm8702_get_eid(const struct shell *shell, size_t argc, char **argv)
+{
+    get_dev_endpoint();
+	return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
 			       SHELL_CMD(mctp_init, NULL, "MCTP init", test_pm8702_mctp_init),
 			       SHELL_CMD(set_eid, NULL, "Set endpoing ID", test_pm8702_set_eid),
-			       SHELL_SUBCMD_SET_END /* Array terminated. */
+			       SHELL_CMD(get_eid, NULL, "Get endpoing ID", test_pm8702_get_eid),
+				   SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);

@@ -44,10 +44,10 @@ void pal_pre_init()
 	}
 }
 
-void pal_post_init()
-{
-	plat_mctp_init();
-}
+// void pal_post_init()
+// {
+// 	plat_mctp_init();
+// }
 
 void pal_set_sys_status()
 {
