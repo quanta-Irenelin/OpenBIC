@@ -33,7 +33,8 @@
 /* SRMBurn version */
 
 #define SRMBURN_VERSION    01.00.01.00
-
+#define CXL_RECOVER_ADDR               0x27
+ 
 /* SMBus command set */
 #define I2C_SMBUS_QUICK                0
 #define I2C_SMBUS_BYTE                 1
