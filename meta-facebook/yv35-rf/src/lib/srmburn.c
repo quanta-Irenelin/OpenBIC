@@ -40,59 +40,6 @@ static const unsigned char rom_idle_states[ROM_PROTO_CNT] =
 };
 static srm_protocol_ver proto_ver = ROM_PROTO_UNKOWN;
 
-/**
-* @brief
-*   Write byte to device
-* @param[in] file  - file descriptor
-* @param[in] value - value to write
-* @return
-*   Success or failure
-* @note
-*/
-int i2c_write_byte(unsigned char command)
-{
-    int ret = SUCCESS;
-    int retry = 5;
-    I2C_MSG msg = {0};
-	msg.bus = 1;
-	msg.target_addr = CXL_RECOVER_ADDR;
-	msg.tx_len = 1;
-	msg.rx_len = 2;
-	msg.data[0] = command;
-
-    if (i2c_master_write(&msg, retry)) {
-        printf("Failed to 0x%02x write\n",command);
-        return -1;
-    }
-    return ret;
-}
-
-/**
-* @brief
-*   Send Reset command
-* @param[in]    - None
-* @return
-*   SUCCESS or Error code
-* @note
-*/
-int srm_reset(void)
-{
-    int ret = SUCCESS;
-    int retry = 5;
-    I2C_MSG msg = {0};
-	msg.bus = 1;
-	msg.target_addr = 0x27;
-	msg.tx_len = 1;
-	msg.rx_len = 2;
-	msg.data[0] = SRM_CMD_BYTE_RESET;
-    /* Request to reset device state machine */
-    if (i2c_master_write(&msg, retry)) {
-        printf("Failed to reset\n");
-        return -1;
-    }
-    return ret;
-}
-
 
 /**
 * @brief
@@ -126,8 +73,6 @@ int srm_get_status(unsigned char *status, unsigned char twi_cmd, unsigned char w
 	msg.target_addr = CXL_RECOVER_ADDR;
 	msg.tx_len = 1;
 	msg.rx_len = to_boot ? 4: 6;
-	// msg.data[0] = to_boot ? SRM_PBOOT_ID : SRM_SRA_ID;
-    // msg.data[0] = twi_cmd;
     int cnt = to_boot? 4: 6;
     msg.data[0] = twi_cmd;
     if(i2c_master_read(&msg, retry)){
@@ -146,88 +91,61 @@ int srm_get_status(unsigned char *status, unsigned char twi_cmd, unsigned char w
             printf("\n");
             printf("i: %d, state_count: %d, resync_count: %d\n",i, state_count,resync_count);
             k_msleep(100);
-            if (i == 0)
-            {
+            if (i == 0){
                 /* Check app ID: 3D - pboot, 3E - SRA */
-                if (data[0] != target_app)
-                {
+                if (data[0] != target_app){
                     /* Wrong app index: device is not able to respond now or sync is broken. stay in index 0 */
                     resync_count++;
                     continue;
-                }
-                else
-                {
+                }else{
                     /* Found right start byte, read full state */
                     resync_count = 0;
                 }
-            }
-            else if (i == 1)
-            {
+            }else if (i == 1){
                 bool state_failure = false;
-
                 /*
                 *  handles boot rom idle status separately because
                 *  the status value is indicating boot rom version
                 */
                 if (to_boot && (wait_state == SRM_STATE_IDLE))
                 {
-                    if (proto_ver == ROM_PROTO_UNKOWN)
-                    {
-                        for (int i = ROM_PROTO_0; i < ROM_PROTO_CNT; i ++)
-                        {
-                            if (data[1] == rom_idle_states[i])
-                            {
+                    if (proto_ver == ROM_PROTO_UNKOWN){
+                        for (int i = ROM_PROTO_0; i < ROM_PROTO_CNT; i ++){
+                            if (data[1] == rom_idle_states[i]){
                                 proto_ver = i;
                             }
+                        }if (proto_ver == ROM_PROTO_UNKOWN){
+                            state_failure = true;
                         }
-                        if (proto_ver == ROM_PROTO_UNKOWN)
-                        {
+                    }else{
+                        if (data[1] != rom_idle_states[proto_ver]){
                             state_failure = true;
                         }
                     }
-                    else
-                    {
-                        if (data[1] != rom_idle_states[proto_ver])
-                        {
-                            state_failure = true;
-                        }
-                    }
-                }
-                else if ((0 != wait_state) && (data[1] != wait_state))
-                {
+                }else if ((0 != wait_state) && (data[1] != wait_state)){
                     state_failure = true;
-
-                    if (error_state != data[1])
-                    {
+                    if (error_state != data[1]){
                         error_state = data[1];
                         error_state_count = 0;
-                    }
-                    else
-                    {
+                    }else{
                         error_state_count++;
-                        if (error_state_count % 100 == 0)
-                        {
+                        if (error_state_count % 100 == 0){
                             printf("Wrong State: 0x%x\n", error_state);
                         }
                     }
                 }
 
                 /* Check target state */
-                if (state_failure)
-                {
+                if (state_failure){
                     i = 0;          /* Find again from start */
                     resync_count++;
                     continue;
-                }
-                else
-                {
+                }else{
                     /* Found right state, read full state */
                     resync_count = 0;
                 }
             }
             i++; 
-
-
         }
         printf("cxl status ");
         for(int j=0;j<cnt;j++){
@@ -243,18 +161,6 @@ int srm_get_status(unsigned char *status, unsigned char twi_cmd, unsigned char w
             if (wait_state == 0){
                 break;
             }
-#if (DBG_SRM_EN == 1)
-            if (to_boot)
-            {
-                printf("Inavlid State: 0x%x 0x%x 0x%x 0x%x\n",
-                       data[0], data[1], data[2], data[3]);
-            }
-            else
-            {
-                printf("Target State: 0x%x, Inavlid State: 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\n",
-                       wait_state, data[0], data[1], data[2], data[3], data[4], data[5]);
-            }
-#endif
             k_msleep(WAIT_TIME_SEC);
             i = 0;
             resync_count = 0;
@@ -275,39 +181,36 @@ int srm_send_block(unsigned char *status, uint8_t *data)
 	msg.tx_len = 1;
 	msg.rx_len = 0;
 
-    msg.data[0] = SRM_CMD_BYTE_INIT;
     /* Send Packet Data Init Flag */
+    msg.data[0] = SRM_PKT_CMD_FLAG;
     if (i2c_master_write(&msg, retry)) {
-        printf("Failed to write block\n");
-        return -1;
+        printf("Failed to write SRM_PKT_CMD_FLAG\n");
+        return FAIL;
     }
 
-    msg.data[0] = 0x20;
-    if (final_flag == true){
-        msg.data[0] = 0x04;
-    }
-    /* Send Packet Data Flag (Start/End) */
+    /* Send Packet Data Flag (keep Write flag/Final write flag) */
+    msg.data[0] = final_flag ? SRM_PKT_FINAL_WRITE : SRM_PKT_KEEP_WRITE;
     if (i2c_master_write(&msg, retry)) {
-        printf("Failed to write block\n");
-        return -1;
+        printf("Failed to write flag\n");
+        return FAIL;
     }
 
     for(int i = 0; i< BLOCK_TX_LENGTH;i++){
         msg.data[0] = *(data+i);
         /* Send Packet Data by one byte */
-        if(i<31){
+        if(i < BLOCK_TX_LENGTH-1){
             if (i2c_master_write(&msg, retry)) {
                 printf("Failed to write block\n");
-                return -1;
+                return FAIL;
             }
         }
-        if(i==31){
-            msg.rx_len = 4;
+        if(i == BLOCK_TX_LENGTH-1){
+            msg.rx_len = to_boot ? 4: 6;
             if (i2c_master_read(&msg, retry)) {
                 printf("Failed to write block\n");
-                return -1;
+                return FAIL;
             }
-            for(int i=0;i<4;i++){
+            for(int i=0;i< msg.rx_len;i++){
                 return_status[i] = msg.data[i];
             } 
         }
@@ -331,7 +234,7 @@ int srm_send_size()
         return -1;
     } 
 	msg.tx_len = 1;
-	msg.rx_len = 4;   
+	msg.rx_len = to_boot ? 4: 6;   
     msg.data[0] = 0x33;
     if (i2c_master_read(&msg, retry)) {
         printf("Failed to write size\n");
@@ -402,10 +305,10 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
 
 	if (!is_init) {
 		SAFE_FREE(txbuf);
-		txbuf = (uint8_t *)malloc(128);
+		txbuf = (uint8_t *)malloc(SECTOR_SZ_BYTES);
 		if (txbuf == NULL) { // Retry alloc
 			k_msleep(100);
-			txbuf = (uint8_t *)malloc(128);
+			txbuf = (uint8_t *)malloc(SECTOR_SZ_BYTES);
 		}
 		if (txbuf == NULL) {
 			printf("i2c index failed to allocate txbuf");
@@ -421,8 +324,8 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
 	buf_offset += msg_len;
 
 	// i2c master write while collect 128 bytes data or BMC signal last image package with target | 0x80
-	if ((buf_offset == 128) || sector_end) {
-		uint8_t sector = 4;
+	if ((buf_offset == SECTOR_SZ_BYTES) || sector_end) {
+		uint8_t sector = SECTOR_SZ_BYTES/BLOCK_TX_LENGTH;
 		uint32_t txbuf_offset;
 		uint32_t update_offset;
 
@@ -437,11 +340,7 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
                     len = (size - written);
                 }
             }
-            /*
-            *  Device side HW Rx buffer size is 128B so we need to check device status.
-            *  if we keeps sending data while the device is busy, then HW fifo overflows and lost data sync
-            */
-
+            
             unsigned char retry = 0;
             while (device_index != written){
                 printf("device_index (0x%08x) is not matching with sending offset (0x%08x)\n", device_index, written);
@@ -450,22 +349,22 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
                     return EFAIL;
                 }
                 k_msleep(WAIT_TIME_SEC);
-                // srm_get_status(status,SRM_CMD_BYTE_IMGWRITE, SRM_STATE_WRITE);
                 device_index = to_boot ?
                                 (((unsigned int)status[3] << 8) + status[2]) << 2 :
                                 (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
                                 ((unsigned int)status[3] << 8) + status[2]);
             }
 			txbuf_offset = BLOCK_TX_LENGTH * i;
-			update_offset = (offset / 128) * 128 + txbuf_offset;
+
+			update_offset = (offset / SECTOR_SZ_BYTES) * SECTOR_SZ_BYTES + txbuf_offset;
             ret = srm_send_block(status, &txbuf[txbuf_offset]);
             device_index = to_boot ?
                 (((unsigned int)status[3] << 8) + status[2]) << 2 :
                 (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
                 ((unsigned int)status[3] << 8) + status[2]);
-            printf("i: %d, update_offset 0x%02x, ret:%d, written 0x%02x\n",i,update_offset, ret,written);
+            printf("i: %d, update_offset 0x%02x, ret:%d, written 0x%02x\n",i ,update_offset ,ret,written);
             written += len;
-            if(update_offset==0xcd40){
+            if(update_offset == 0xcd40){
                 final_flag = 1;
                 k_msleep(WAIT_TIME_SEC);
                 SAFE_FREE(txbuf);
@@ -474,7 +373,7 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
             }
 		}
         if(ret){
-            return 4;
+            return FWUPDATE_UPDATE_FAIL;
         }
         SAFE_FREE(txbuf);
         k_msleep(10);
@@ -484,35 +383,70 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
     return ret;
 }
 
+int srm_verify(unsigned char twi_command, unsigned char status)
+{
+    int retry = 5;
+    I2C_MSG msg = {0};
+	msg.bus = 1;
+	msg.target_addr = CXL_RECOVER_ADDR;
+	msg.tx_len = 1;
+	msg.rx_len = to_boot ? 4: 6;
+	msg.data[0] = twi_command;
+
+    if (i2c_master_read(&msg, retry)) {
+        printf("Failed to 0x%02x read\n",twi_command);
+        return FAIL;
+    }
+
+    return msg.data[1] == status ? SUCCESS : FAIL;
+}
+
+
+int srm_write_byte(char twi_command)
+{
+    int retry = 5;
+    I2C_MSG msg = {0};
+	msg.bus = 1;
+	msg.target_addr = CXL_RECOVER_ADDR;
+	msg.tx_len = 1;
+	msg.rx_len = to_boot ? 4: 6;
+	msg.data[0] = twi_command;
+    if (i2c_master_read(&msg, retry)) {
+        printf("Failed to 0x%02x read\n",twi_command);
+        return FAIL;
+    }
+    return SUCCESS;
+}
+
 
 uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end)
 {   
     uint8_t ret = FWUPDATE_UPDATE_FAIL;
 	set_CXL_update_status(POWER_ON);
-    uint8_t is_cxl_DC_ON = gpio_get(32);
+    uint8_t is_cxl_DC_ON = gpio_get(FM_POWER_EN);
+    unsigned char status[6] = {0};
     for(int i=0; i<5;i++){
-        if(is_cxl_DC_ON ==1){
-            printf("cxl msg_len: %d\n", msg_len);
+        if(is_cxl_DC_ON == POWER_ON){
+            if( written == 0xcd60){
+                ret=0;
+                return ret;
+            }
             ret = cxl_do_update(offset, msg_len, msg_buf, sector_end);
             if(ret == SRM_CMD_BYTE_VERIFY){
-                I2C_MSG msg = {0};
-                msg.bus = 1;
-                msg.target_addr = CXL_RECOVER_ADDR;
-                msg.tx_len = 1;
-                msg.rx_len = 4;
-                msg.data[0] = SRM_CMD_BYTE_VERIFY;
-                i2c_master_read(&msg, 5);
-                printf("status: ");
-                for(int i=0; i<4;i++){
-                    printf("0x%02x ", msg.data[i]);
-                }
+                ret = srm_verify(SRM_CMD_BYTE_VERIFY, SRM_STATE_VERIFY);
                 printf("\nSend cmd to go into EXEC state\n");
-                ret=0;
+                srm_write_byte(SRM_CMD_BYTE_EXEC);
+                k_msleep(100000);
+                to_boot = false;
+                srm_write_byte(SRM_CMD_BYTE_RESET);
+                printf("\nSend cmd to go into Reset state\n");
+                srm_get_status(status,SRM_CMD_BYTE_RESET, SRM_STATE_IDLE);
+                srm_get_status(status,SRM_CMD_BYTE_IMGWRITE, SRM_STATE_WRITE);
             }
             return ret;
         }else{
             k_msleep(300);
-            is_cxl_DC_ON = gpio_get(32);
+            is_cxl_DC_ON = gpio_get(FM_POWER_EN);
         }
     }    
 

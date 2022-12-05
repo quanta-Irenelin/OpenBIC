@@ -33,8 +33,14 @@
 /* SRMBurn version */
 
 #define SRMBURN_VERSION    01.00.01.00
+
 #define CXL_RECOVER_ADDR               0x27
- 
+/*
+*  Device side HW Rx buffer size is 128B so we need to check device status.
+*  if we keeps sending data while the device is busy, then HW fifo overflows and lost data sync
+*/
+#define SECTOR_SZ_BYTES                128 
+
 /* SMBus command set */
 #define I2C_SMBUS_QUICK                0
 #define I2C_SMBUS_BYTE                 1
@@ -62,11 +68,16 @@
 #define SRM_STATE_VERIFY        0xB3       /**< VERIFY state */
 
 /* TWI command bytes from TWI master */
-#define SRM_CMD_BYTE_INIT   0x00       /**< INIT command */
 #define SRM_CMD_BYTE_IMGWRITE   0xA1       /**< IMGWRITE command */
 #define SRM_CMD_BYTE_VERIFY     0xA2       /**< VERIFY command */
 #define SRM_CMD_BYTE_EXEC       0xA3       /**< EXEC command */
-#define SRM_CMD_BYTE_RESET      0xFF       /**< EXEC command */
+#define SRM_CMD_BYTE_RESET      0xFF       /**< RESET command */
+
+#define SRM_CMD_BYTE_INIT       0x00
+#define SRM_PKT_CMD_FLAG        0x00       /**< INIT command */
+#define SRM_PKT_KEEP_WRITE      0x20       /**< SENDFLAG command */
+#define SRM_PKT_FINAL_WRITE      0x04       /**< FINALFLAG command */
+
 
 #define BLOCK_TX_LENGTH         32
 #define MAX_FILE_NAME_LENGTH    32
@@ -104,7 +115,6 @@ typedef enum
     EDEVNF,              /* Device not found */
     ENOFILE,             /* Invalid file path */
     ETOTAL
-
 } SRM_ERROR;
 
 /*
@@ -150,8 +160,8 @@ int srm_send_block(unsigned char *status, uint8_t *data);
 int srm_run(void);
 int srm_reset(void);
 int srm_read_byte(void);
-int srm_write_byte(char data);
+int srm_write_byte(char twi_command);
 uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end);
 uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end);
-
+int srm_verify(unsigned char twi_command, unsigned char status);
 #endif /* _SRM_H */
