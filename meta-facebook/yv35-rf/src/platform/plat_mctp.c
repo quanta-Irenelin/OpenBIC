@@ -297,3 +297,25 @@ void plat_mctp_init(void)
 	// if (is_mb_dc_on())
 	// 	k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
 }
+
+
+#include <shell/shell.h>
+
+static int test_pm8702_mctp_init(const struct shell *shell, size_t argc, char **argv)
+{
+ 	plat_mctp_init();
+	return 0;
+};
+
+static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **argv)
+{
+    set_dev_endpoint();
+	return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
+			       SHELL_CMD(mctp_init, NULL, "MCTP init", test_pm8702_mctp_init),
+			       SHELL_CMD(set_eid, NULL, "Set endpoing ID", test_pm8702_set_eid),
+			       SHELL_SUBCMD_SET_END /* Array terminated. */
+);
+SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);
