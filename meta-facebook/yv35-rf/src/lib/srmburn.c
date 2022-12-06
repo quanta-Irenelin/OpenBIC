@@ -409,9 +409,9 @@ int srm_write_byte(char twi_command)
 	msg.bus = 1;
 	msg.target_addr = CXL_RECOVER_ADDR;
 	msg.tx_len = 1;
-	msg.rx_len = to_boot ? 4: 6;
+	msg.rx_len = 0;
 	msg.data[0] = twi_command;
-    if (i2c_master_read(&msg, retry)) {
+    if (i2c_master_write(&msg, retry)) {
         printf("Failed to 0x%02x read\n",twi_command);
         return FAIL;
     }
@@ -436,12 +436,12 @@ uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf,
                 ret = srm_verify(SRM_CMD_BYTE_VERIFY, SRM_STATE_VERIFY);
                 printf("\nSend cmd to go into EXEC state\n");
                 srm_write_byte(SRM_CMD_BYTE_EXEC);
-                k_msleep(100000);
+                k_msleep(1000);
                 to_boot = false;
-                srm_write_byte(SRM_CMD_BYTE_RESET);
-                printf("\nSend cmd to go into Reset state\n");
                 srm_get_status(status,SRM_CMD_BYTE_RESET, SRM_STATE_IDLE);
                 srm_get_status(status,SRM_CMD_BYTE_IMGWRITE, SRM_STATE_WRITE);
+                printf("WRITE STATE\n");
+                printf("\nSend cmd to go into Reset state\n");
             }
             return ret;
         }else{
