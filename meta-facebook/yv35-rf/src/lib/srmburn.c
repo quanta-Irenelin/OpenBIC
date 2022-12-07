@@ -364,7 +364,8 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
                 ((unsigned int)status[3] << 8) + status[2]);
             printf("i: %d, update_offset 0x%02x, ret:%d, written 0x%02x\n",i ,update_offset ,ret,written);
             written += len;
-            if(update_offset == 0xcd40){
+
+            if(update_offset == (size-BLOCK_TX_LENGTH)){
                 final_flag = 1;
                 k_msleep(WAIT_TIME_SEC);
                 SAFE_FREE(txbuf);
@@ -427,21 +428,18 @@ uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf,
     unsigned char status[6] = {0};
     for(int i=0; i<5;i++){
         if(is_cxl_DC_ON == POWER_ON){
-            if( written == 0xcd60){
-                ret=0;
-                return ret;
-            }
             ret = cxl_do_update(offset, msg_len, msg_buf, sector_end);
             if(ret == SRM_CMD_BYTE_VERIFY){
                 ret = srm_verify(SRM_CMD_BYTE_VERIFY, SRM_STATE_VERIFY);
+                printf("ret: %d\n", ret);
                 printf("\nSend cmd to go into EXEC state\n");
                 srm_write_byte(SRM_CMD_BYTE_EXEC);
                 k_msleep(1000);
                 to_boot = false;
-                srm_get_status(status,SRM_CMD_BYTE_RESET, SRM_STATE_IDLE);
-                srm_get_status(status,SRM_CMD_BYTE_IMGWRITE, SRM_STATE_WRITE);
                 printf("WRITE STATE\n");
+                srm_write_byte(SRM_CMD_BYTE_RESET);
                 printf("\nSend cmd to go into Reset state\n");
+               
             }
             return ret;
         }else{
