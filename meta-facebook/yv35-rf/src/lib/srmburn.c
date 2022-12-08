@@ -1,23 +1,13 @@
-/*
-** Include Files
-*/
-#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include "srmburn.h"
 #include "plat_i2c.h"
-#include <drivers/disk.h>
 #include "util_spi.h"
 #include "libutil.h"
-
-
 #include <plat_power_seq.h>
 #include "hal_gpio.h"
-#include "util_spi.h"
 #include "util_sys.h"
 #include "plat_gpio.h"
 /*
@@ -25,7 +15,7 @@
 **    TRUE: communicate with pboot
 **    FLASE: communicate with SRA device app
 */
-bool to_boot;
+bool to_boot;                                                                                                                               
 int final_flag = false;
 int srm_send_init = true;
 unsigned int written = 0;
@@ -40,7 +30,17 @@ static const unsigned char rom_idle_states[ROM_PROTO_CNT] =
 };
 static srm_protocol_ver proto_ver = ROM_PROTO_UNKOWN;
 
-
+int set_size_length(){
+    int size = SRM_SIZE;
+    if (to_boot){
+        size = size >> 2;
+        /* Account for dword unaligned sizes */
+        if ((SRM_SIZE % 4) > 0){
+            size++;
+        }
+    }
+    return size;
+}
 /**
 * @brief
 *   Read state from device
@@ -170,7 +170,7 @@ int srm_get_status(unsigned char *status, unsigned char twi_cmd, unsigned char w
     return (resync_count == 0) ? SUCCESS : FAIL;
 }
 
-int srm_send_block(unsigned char *status, uint8_t *data)
+int srm_send_block(unsigned char *status, uint8_t *data, uint32_t final_bytes)
 {   
     unsigned char *return_status = status;
     int ret = SUCCESS;
@@ -180,6 +180,7 @@ int srm_send_block(unsigned char *status, uint8_t *data)
 	msg.target_addr = CXL_RECOVER_ADDR;
 	msg.tx_len = 1;
 	msg.rx_len = 0;
+    int write_length = final_flag ? final_bytes : BLOCK_TX_LENGTH;
 
     /* Send Packet Data Init Flag */
     msg.data[0] = SRM_PKT_CMD_FLAG;
@@ -188,23 +189,23 @@ int srm_send_block(unsigned char *status, uint8_t *data)
         return FAIL;
     }
 
-    /* Send Packet Data Flag (keep Write flag/Final write flag) */
-    msg.data[0] = final_flag ? SRM_PKT_FINAL_WRITE : SRM_PKT_KEEP_WRITE;
+    /* Send Packet Data Length */
+    msg.data[0] = final_flag ? final_bytes : SRM_PKT_BLOCK_LENGTH;
     if (i2c_master_write(&msg, retry)) {
         printf("Failed to write flag\n");
         return FAIL;
     }
-
-    for(int i = 0; i< BLOCK_TX_LENGTH;i++){
+ 
+    for(int i = 0; i< write_length;i++){
         msg.data[0] = *(data+i);
         /* Send Packet Data by one byte */
-        if(i < BLOCK_TX_LENGTH-1){
+        if(i < write_length-1){
             if (i2c_master_write(&msg, retry)) {
                 printf("Failed to write block\n");
                 return FAIL;
             }
         }
-        if(i == BLOCK_TX_LENGTH-1){
+        if(i == write_length-1){
             msg.rx_len = to_boot ? 4: 6;
             if (i2c_master_read(&msg, retry)) {
                 printf("Failed to write block\n");
@@ -227,22 +228,23 @@ int srm_send_size()
 	msg.target_addr = CXL_RECOVER_ADDR;
 	msg.tx_len = 1;
 	msg.rx_len = 1;
-	msg.data[0] = 0x58;
+    int size = set_size_length();
+
+    char *p = (char *)&size;
+	msg.data[0] = p[0];
     /* Send file size */
     if (i2c_master_write(&msg, retry)) {
         printf("Failed to write size\n");
         return -1;
     } 
-	msg.tx_len = 1;
 	msg.rx_len = to_boot ? 4: 6;   
-    msg.data[0] = 0x33;
+    msg.data[0] = p[1];
     if (i2c_master_read(&msg, retry)) {
         printf("Failed to write size\n");
         return -1;
     }         
     return ret;
 }
-
 
 /**
 * @brief
@@ -272,36 +274,26 @@ int srm_run(void)
     return ret;
 }
 
-
-
 uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end){
 	static bool is_init = 0;
 	static uint8_t *txbuf = NULL;
 	static uint32_t buf_offset = 0;
 	uint32_t ret = 0;
     unsigned char status[6] = {0};
-    unsigned int size = 52572;
-
+    int size = set_size_length();
+    int final_block = (((SRM_SIZE >>2) +1) * 4)-32;
+    int final_bytes = SRM_SIZE - final_block;
     set_CXL_update_status(POWER_ON);
     if(srm_send_init){
         srm_run();
         /* Initialize State and Check if device is ready */
         srm_get_status(status,SRM_CMD_BYTE_RESET, SRM_STATE_IDLE);
-        /* pboot uses word length whereas SRA uses byte length */
-        if (to_boot){
-            size = size >> 2;
-            /* Account for dword unaligned sizes */
-            if ((52572 % 4) > 0){
-                size++;
-            }
-        }
         srm_get_status(status,SRM_CMD_BYTE_IMGWRITE, SRM_STATE_WRITE);
         printf("WRITE STATE\n");
         srm_send_size();
         printf("SEND SIZE\n");
         srm_send_init = false;
     }
-    printf("run status: %d\n",srm_send_init);
 
 	if (!is_init) {
 		SAFE_FREE(txbuf);
@@ -341,12 +333,12 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
                 }
             }
             
-            unsigned char retry = 0;
+            int retry = 0;
             while (device_index != written){
                 printf("device_index (0x%08x) is not matching with sending offset (0x%08x)\n", device_index, written);
                 if (retry++ >= 5){
                     printf("device is in wrong state\n");
-                    return EFAIL;
+                    return FAIL;
                 }
                 k_msleep(WAIT_TIME_SEC);
                 device_index = to_boot ?
@@ -354,19 +346,21 @@ uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool 
                                 (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
                                 ((unsigned int)status[3] << 8) + status[2]);
             }
+
 			txbuf_offset = BLOCK_TX_LENGTH * i;
 
 			update_offset = (offset / SECTOR_SZ_BYTES) * SECTOR_SZ_BYTES + txbuf_offset;
-            ret = srm_send_block(status, &txbuf[txbuf_offset]);
+            ret = srm_send_block(status, &txbuf[txbuf_offset], final_bytes);
             device_index = to_boot ?
                 (((unsigned int)status[3] << 8) + status[2]) << 2 :
                 (((unsigned int)status[5] << 24) + ((unsigned int)status[4] << 16) +
                 ((unsigned int)status[3] << 8) + status[2]);
             printf("i: %d, update_offset 0x%02x, ret:%d, written 0x%02x\n",i ,update_offset ,ret,written);
             written += len;
-
-            if(update_offset == (size-BLOCK_TX_LENGTH)){
+            if(update_offset == (final_block-BLOCK_TX_LENGTH)){
                 final_flag = 1;
+            }
+            if(update_offset == final_block){
                 k_msleep(WAIT_TIME_SEC);
                 SAFE_FREE(txbuf);
                 k_msleep(10);
@@ -402,7 +396,6 @@ int srm_verify(unsigned char twi_command, unsigned char status)
     return msg.data[1] == status ? SUCCESS : FAIL;
 }
 
-
 int srm_write_byte(char twi_command)
 {
     int retry = 5;
@@ -419,26 +412,24 @@ int srm_write_byte(char twi_command)
     return SUCCESS;
 }
 
-
 uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end)
 {   
     uint8_t ret = FWUPDATE_UPDATE_FAIL;
 	set_CXL_update_status(POWER_ON);
     uint8_t is_cxl_DC_ON = gpio_get(FM_POWER_EN);
-    unsigned char status[6] = {0};
+    // unsigned char status[6] = {0};
     for(int i=0; i<5;i++){
         if(is_cxl_DC_ON == POWER_ON){
             ret = cxl_do_update(offset, msg_len, msg_buf, sector_end);
             if(ret == SRM_CMD_BYTE_VERIFY){
                 ret = srm_verify(SRM_CMD_BYTE_VERIFY, SRM_STATE_VERIFY);
-                printf("ret: %d\n", ret);
-                printf("\nSend cmd to go into EXEC state\n");
+                printf("\n Send cmd to go into EXEC state\n");
+                k_msleep(1000);
                 srm_write_byte(SRM_CMD_BYTE_EXEC);
                 k_msleep(1000);
                 to_boot = false;
-                printf("WRITE STATE\n");
-                srm_write_byte(SRM_CMD_BYTE_RESET);
-                printf("\nSend cmd to go into Reset state\n");
+                srm_verify(SRM_CMD_BYTE_RESET,SRM_CMD_BYTE_RESET);
+                printf("\n Send cmd to go into Reset state\n");
                
             }
             return ret;

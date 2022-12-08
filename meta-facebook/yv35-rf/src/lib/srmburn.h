@@ -23,38 +23,18 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-/* Uncomment to enable debug */
-#define DBG_SRM_EN      0
-
-/*
-* Macros
-*/
-
-/* SRMBurn version */
-
-#define SRMBURN_VERSION    01.00.01.00
-
 #define CXL_RECOVER_ADDR               0x27
 /*
 *  Device side HW Rx buffer size is 128B so we need to check device status.
 *  if we keeps sending data while the device is busy, then HW fifo overflows and lost data sync
 */
 #define SECTOR_SZ_BYTES                128 
-
-/* SMBus command set */
-#define I2C_SMBUS_QUICK                0
-#define I2C_SMBUS_BYTE                 1
-#define I2C_SMBUS_BYTE_DATA            2
-#define I2C_SMBUS_WORD_DATA            3
-#define I2C_SMBUS_PROC_CALL            4
-#define I2C_SMBUS_BLOCK_DATA           5
-#define I2C_SMBUS_I2C_BLOCK_BROKEN     6
-#define I2C_SMBUS_BLOCK_PROC_CALL      7
-#define I2C_SMBUS_I2C_BLOCK_DATA       8
-
-#define I2C_SMBUS_BLOCK_MAX     32         /**< Linux limits for block size */
-#define I2C_SMBUS_READ          1
-#define I2C_SMBUS_WRITE         0
+#define SRM_SIZE                       52572 
+#define BLOCK_TX_LENGTH         32
+#define WAIT_TIME_SEC   1
+#define MAX_RETRY       3
+#define FAIL   -1
+#define SUCCESS 0
 
 /* Recovery mode slave identifier */
 #define SRM_PBOOT_ID            0x3D       /**< pboot identifier */
@@ -75,47 +55,7 @@
 
 #define SRM_CMD_BYTE_INIT       0x00
 #define SRM_PKT_CMD_FLAG        0x00       /**< INIT command */
-#define SRM_PKT_KEEP_WRITE      0x20       /**< SENDFLAG command */
-#define SRM_PKT_FINAL_WRITE      0x04       /**< FINALFLAG command */
-
-
-#define BLOCK_TX_LENGTH         32
-#define MAX_FILE_NAME_LENGTH    32
-#define MAX_I2C_DEV_FILES       16
-
-#define WAIT_TIME_SEC   1
-#define MAX_RETRY       3
-
-#define FAIL   -1
-#define SUCCESS 0
-
-#define SMS_REQ_IDX_ROM_REV_A   3
-#define SMS_REQ_BIT_MASK_REV_A  0x01
-#define SMS_REQ_IDX_ROM_REV_B   2
-#define SMS_REQ_BIT_MASK_REV_B  0x80
-#define DBG_TOKEN_VAL_IDX       3
-#define DBG_TOKEN_IDX_IDX       2
-#define DBG_TOKEN_IDX_MASK      0x7F
-
-
-/* length two debug tokens: static followed by ephemeral */
-#define SRM_DEBUG_TOKEN_LEN (64 * 2)
-
-/*
-Data Structs
-*/
-
-typedef enum
-{
-    EFAIL = 1,
-    EINVSLV,             /* Invalid id */
-    EINVSTATE,           /* Invalid state */
-    EFAILVERIFY,         /* Failed verification */
-    EFAILSTATETRANS,     /* Fail state transition */
-    EDEVNF,              /* Device not found */
-    ENOFILE,             /* Invalid file path */
-    ETOTAL
-} SRM_ERROR;
+#define SRM_PKT_BLOCK_LENGTH      0x20       /**< SENDFLAG command */
 
 /*
 ** Rom Protocol enum
@@ -132,34 +72,12 @@ typedef enum
     ROM_PROTO_CNT,
 } srm_protocol_ver;
 
-union i2c_smbus_data {
-    unsigned char byte;
-    unsigned short word;
-    unsigned char block[I2C_SMBUS_BLOCK_MAX + 2]; /* block[1] is used for length */
-                                                  /* and one more for PEC */
-};
 
-
-
-/*
- * Funtion prototypes
-*/
-
-/* i2c/smbus write and read commands */
-int i2c_smbus_access(int file, char read_write, unsigned char command,
-                     int size, union i2c_smbus_data *data);
-int i2c_smbus_read_byte(int file);
-int i2c_smbus_write_byte(unsigned char value);
-
-/* srm helper functions */
-int srm_smbus_init(char filename[40], int addr);
+/* srm functions */
 int srm_get_status(unsigned char *status, unsigned char twi_cmd, unsigned char wait_state);
-int srm_discover_busses(void);
-int srm_send_image(char *image_path);
-int srm_send_block(unsigned char *status, uint8_t *data);
+int srm_send_block(unsigned char *status, uint8_t *data, uint32_t final_bytes);
 int srm_run(void);
 int srm_reset(void);
-int srm_read_byte(void);
 int srm_write_byte(char twi_command);
 uint8_t cxl_recovery_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end);
 uint8_t cxl_do_update(uint32_t offset, uint16_t msg_len, uint8_t *msg_buf, bool sector_end);
