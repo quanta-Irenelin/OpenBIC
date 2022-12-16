@@ -297,7 +297,7 @@ static void mctp_tx_task(void *arg, void *dummy0, void *dummy1)
 			free(mctp_msg.buf);
 			continue;
 		}
-
+		mctp_msg.ext_params.ep =  0x2E;
 		LOG_DBG("tx endpoint %x", mctp_msg.ext_params.ep);
 		LOG_HEXDUMP_DBG(mctp_msg.buf, mctp_msg.len, "mctp tx task receive data");
 

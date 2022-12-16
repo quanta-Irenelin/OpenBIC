@@ -73,13 +73,32 @@ typedef struct _mctp_msg_handler {
 } mctp_msg_handler;
 
 static mctp_smbus_port smbus_port[] = {
-	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL },
+	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL},
 };
 
 mctp_route_entry mctp_route_tbl[] = {
 	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL0 },
 	// { MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL1 },
 };
+
+typedef struct __attribute__((packed)) {
+	uint8_t msg_type : 7;
+	uint8_t ic : 1;
+	uint8_t req_d_id;
+	uint8_t cmd;
+} mctp_cci_hdr;
+
+typedef struct {
+	mctp_cci_hdr hdr;
+	uint8_t *cmd_data;
+	uint16_t cmd_data_len;
+	mctp_ext_params ext_params;
+	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
+	void *recv_resp_cb_args;
+	uint16_t timeout_ms;
+	void (*timeout_cb_fn)(void *);
+	void *timeout_cb_fn_args;
+}mctp_cci_msg;
 
 static mctp *find_mctp_by_smbus(uint8_t bus)
 {
@@ -185,7 +204,6 @@ static uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst,
 			break;
 		}
 	}
-
 	return rc;
 }
 
@@ -216,6 +234,70 @@ void plat_mctp_init(void)
 }
 
 
+uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
+{
+	if (!mctp_p || !msg || !msg->cmd_data)
+		return MCTP_ERROR;
+
+	mctp *mctp_inst = (mctp *)mctp_p;
+	mctp_reg_endpoint_resolve_func(mctp_inst, get_mctp_route_info);
+	msg->hdr.msg_type = 0x08;
+	msg->ext_params.tag_owner = 1;
+	uint16_t len = sizeof(msg->hdr) + msg->cmd_data_len;
+	uint8_t buf[len];
+	memcpy(buf, &msg->hdr, sizeof(msg->hdr));
+	memcpy(buf + sizeof(msg->hdr), msg->cmd_data, msg->cmd_data_len);
+	LOG_HEXDUMP_DBG(buf, len, __func__);
+	uint8_t rc = mctp_send_msg(mctp_inst, buf, len, msg->ext_params);
+	if (rc == MCTP_ERROR) {
+		LOG_WRN("mctp_send_msg error!!");
+		return MCTP_ERROR;
+	}
+
+	return MCTP_SUCCESS;
+}
+
+struct _set_cci_req {
+	uint8_t cci_rsv;
+	uint16_t op;
+	uint16_t pl_len;
+	uint8_t rsv;
+	uint16_t ret;
+	uint16_t stat;
+} __attribute__((packed));
+
+static void send_cci(void)
+{
+	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
+		mctp_route_entry *p = mctp_route_tbl + i;
+
+		if (p->bus != smbus_port[0].conf.smbus_conf.bus){
+			continue;
+		}
+		printk("Prepare send endpoint bus 0x%x, addr 0x%x\n", p->bus, p->addr);
+		struct _set_cci_req req = { 0 };
+		req.op = 0x4200;
+
+		mctp_cci_msg msg;
+		memset(&msg, 0, sizeof(msg));
+		msg.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS;
+		msg.ext_params.smbus_ext_params.addr = p->addr;
+
+		msg.hdr.cmd = 0x00;
+
+		msg.cmd_data = (uint8_t *)&req;
+		msg.cmd_data_len = sizeof(req);
+
+		msg.recv_resp_cb_fn = set_endpoint_resp_handler;
+		msg.timeout_cb_fn = set_endpoint_resp_timeout;
+		msg.timeout_cb_fn_args = p;
+
+		mctp_cci_send_msg(find_mctp_by_smbus(p->bus), &msg);
+	}
+	
+}
+
+
 #include <shell/shell.h>
 static int test_pm8702_mctp_init(const struct shell *shell, size_t argc, char **argv)
 {
@@ -229,9 +311,16 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 	return 0;
 }
 
+static int send_cci_test(const struct shell *shell, size_t argc, char **argv)
+{
+    send_cci();
+	return 0;
+}
+
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
 			       SHELL_CMD(mctp_init, NULL, "MCTP init", test_pm8702_mctp_init),
 			       SHELL_CMD(set_eid, NULL, "Set endpoing ID", test_pm8702_set_eid),
+				   SHELL_CMD(send_cci_test, NULL, "send cci", send_cci_test),
 				   SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);
