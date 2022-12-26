@@ -42,12 +42,8 @@ void pal_pre_init()
 				index, (struct _i2c_target_config *)&I2C_TARGET_CONFIG_TABLE[index],
 				1);
 	}
+	plat_mctp_init();
 }
-
-// void pal_post_init()
-// {
-// 	plat_mctp_init();
-// }
 
 void pal_set_sys_status()
 {

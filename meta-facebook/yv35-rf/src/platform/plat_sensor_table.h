@@ -41,6 +41,7 @@
 
 /*  threshold sensor number, 1 based  */
 #define SENSOR_NUM_TEMP_TMP75 0x50
+#define SENSOR_NUM_TEMP_CXL 0x51
 #define SENSOR_NUM_TEMP_CXL_CNTR 0x52
 #define SENSOR_NUM_TEMP_DIMMA 0x53
 #define SENSOR_NUM_TEMP_DIMMB 0x54
@@ -85,6 +86,7 @@
 #define SENSOR_NUM_PWR_VR0V8D 0x77
 #define SENSOR_NUM_PWR_VRVDDQAB 0x78
 #define SENSOR_NUM_PWR_VRVDDQCD 0x79
+
 
 extern uint8_t plat_get_config_size();
 extern void load_sensor_config(void);

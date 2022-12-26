@@ -33,83 +33,30 @@
 #include "plat_hook.h"
 #include "plat_mctp.h"
 #include "plat_gpio.h"
+#include "cci.h"
 
 LOG_MODULE_REGISTER(plat_mctp);
+K_TIMER_DEFINE(send_cmd_timer, send_cmd_to_dev, NULL);
+K_WORK_DEFINE(send_cmd_work, send_cmd_to_dev_handler);
 
-#define MCTP_MSG_TYPE_SHIFT 0
-#define MCTP_MSG_TYPE_MASK 0x7F
-#define MCTP_IC_SHIFT 7
-#define MCTP_IC_MASK 0x80
-
-/* i2c 8 bit address */
-#define I2C_ADDR_BIC 0x20
-#define I2C_ADDR_CXL0 0x74
-#define I2C_ADDR_CXL1 0xC2
-
-/* i2c dev bus */
-#define I2C_BUS_CXL 0x01
-
-/* mctp endpoint */
-#define MCTP_EID_CXL 0x2E
-
-
-typedef struct _mctp_smbus_port {
-	mctp *mctp_inst;
-	mctp_medium_conf conf;
-	uint8_t user_idx;
-} mctp_smbus_port;
-
-/* mctp route entry struct */
-typedef struct _mctp_route_entry {
-	uint8_t endpoint;
-	uint8_t bus; /* TODO: only consider smbus/i3c */
-	uint8_t addr; /* TODO: only consider smbus/i3c */
-	uint8_t dev_present_pin;
-} mctp_route_entry;
-
-typedef struct _mctp_msg_handler {
-	MCTP_MSG_TYPE type;
-	mctp_fn_cb msg_handler_cb;
-} mctp_msg_handler;
 
 static mctp_smbus_port smbus_port[] = {
 	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL},
 };
 
-mctp_route_entry mctp_route_tbl[] = {
+static mctp_route_entry mctp_route_tbl[] = {
 	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL0 },
 	// { MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL1 },
 };
 
-typedef struct __attribute__((packed)) {
-	uint8_t msg_type : 7;
-	uint8_t ic : 1;
-	uint8_t req_d_id;
-	uint8_t cmd;
-} mctp_cci_hdr;
-
-typedef struct {
-	mctp_cci_hdr hdr;
-	uint8_t *cmd_data;
-	uint16_t cmd_data_len;
-	mctp_ext_params ext_params;
-	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
-	void *recv_resp_cb_args;
-	uint16_t timeout_ms;
-	void (*timeout_cb_fn)(void *);
-	void *timeout_cb_fn_args;
-}mctp_cci_msg;
-
-static mctp *find_mctp_by_smbus(uint8_t bus)
+mctp *find_mctp_by_smbus(uint8_t bus)
 {
 	uint8_t i;
 	for (i = 0; i < ARRAY_SIZE(smbus_port); i++) {
 		mctp_smbus_port *p = smbus_port + i;
-
 		if (bus == p->conf.smbus_conf.bus)
 			return p->mctp_inst;
 	}
-
 	return NULL;
 }
 
@@ -175,6 +122,10 @@ static uint8_t mctp_msg_recv(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 		mctp_ctrl_cmd_handler(mctp_p, buf, len, ext_params);
 		break;
 
+	case MCTP_MSG_TYPE_CCI:
+		mctp_cci_cmd_handler(mctp_p, buf, len, ext_params);
+		break;
+
 	default:
 		LOG_WRN("Cannot find message receive function!!");
 		return MCTP_ERROR;
@@ -183,7 +134,7 @@ static uint8_t mctp_msg_recv(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 	return MCTP_SUCCESS;
 }
 
-static uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst,
+uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst,
 				   mctp_ext_params *ext_params)
 {
 	if (!mctp_inst || !ext_params)
@@ -207,95 +158,44 @@ static uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst,
 	return rc;
 }
 
+void send_cmd_to_dev_handler(struct k_work *work)
+{
+	/* init the device endpoint */
+	set_dev_endpoint();
+}
+void send_cmd_to_dev(struct k_timer *timer)
+{
+	k_work_submit(&send_cmd_work);
+}
+
 void plat_mctp_init(void)
 {
 	LOG_INF("plat_mctp_init");
 
-	/* init the mctp/pldm instance */
-		mctp_smbus_port *p = smbus_port;
-		LOG_DBG("bus = %x, addr = %x", p->conf.smbus_conf.bus, p->conf.smbus_conf.addr);
+/* init the mctp/pldm instance */
+	mctp_smbus_port *p = smbus_port;
+	LOG_DBG("bus = %x, addr = %x", p->conf.smbus_conf.bus, p->conf.smbus_conf.addr);
 
-		p->mctp_inst = mctp_init();
-		if (!p->mctp_inst) {
-			LOG_ERR("mctp_init failed!!");
-		}
-
-		LOG_DBG("mctp_inst = %p", p->mctp_inst);
-		uint8_t rc =
-			mctp_set_medium_configure(p->mctp_inst, MCTP_MEDIUM_TYPE_SMBUS, p->conf);
-		LOG_DBG("mctp_set_medium_configure %s",
-			(rc == MCTP_SUCCESS) ? "success" : "failed");
-
-		mctp_reg_endpoint_resolve_func(p->mctp_inst, get_mctp_route_info);
-		mctp_reg_msg_rx_func(p->mctp_inst, mctp_msg_recv);
-
-		mctp_start(p->mctp_inst);
-	
-}
-
-
-uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
-{
-	if (!mctp_p || !msg || !msg->cmd_data)
-		return MCTP_ERROR;
-
-	mctp *mctp_inst = (mctp *)mctp_p;
-	mctp_reg_endpoint_resolve_func(mctp_inst, get_mctp_route_info);
-	msg->hdr.msg_type = 0x08;
-	msg->ext_params.tag_owner = 1;
-	uint16_t len = sizeof(msg->hdr) + msg->cmd_data_len;
-	uint8_t buf[len];
-	memcpy(buf, &msg->hdr, sizeof(msg->hdr));
-	memcpy(buf + sizeof(msg->hdr), msg->cmd_data, msg->cmd_data_len);
-	LOG_HEXDUMP_DBG(buf, len, __func__);
-	uint8_t rc = mctp_send_msg(mctp_inst, buf, len, msg->ext_params);
-	if (rc == MCTP_ERROR) {
-		LOG_WRN("mctp_send_msg error!!");
-		return MCTP_ERROR;
+	p->mctp_inst = mctp_init();
+	if (!p->mctp_inst) {
+		LOG_ERR("mctp_init failed!!");
 	}
 
-	return MCTP_SUCCESS;
+	LOG_DBG("mctp_inst = %p", p->mctp_inst);
+	uint8_t rc =
+		mctp_set_medium_configure(p->mctp_inst, MCTP_MEDIUM_TYPE_SMBUS, p->conf);
+	LOG_DBG("mctp_set_medium_configure %s",
+		(rc == MCTP_SUCCESS) ? "success" : "failed");
+
+	mctp_reg_endpoint_resolve_func(p->mctp_inst, get_mctp_route_info);
+	mctp_reg_msg_rx_func(p->mctp_inst, mctp_msg_recv);
+
+	mctp_start(p->mctp_inst);
+	/* Only send command to device when DC on */
+	k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
 }
 
-struct _set_cci_req {
-	uint8_t cci_rsv;
-	uint16_t op;
-	uint16_t pl_len;
-	uint8_t rsv;
-	uint16_t ret;
-	uint16_t stat;
-} __attribute__((packed));
 
-static void send_cci(void)
-{
-	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
-		mctp_route_entry *p = mctp_route_tbl + i;
-
-		if (p->bus != smbus_port[0].conf.smbus_conf.bus){
-			continue;
-		}
-		printk("Prepare send endpoint bus 0x%x, addr 0x%x\n", p->bus, p->addr);
-		struct _set_cci_req req = { 0 };
-		req.op = 0x4200;
-
-		mctp_cci_msg msg;
-		memset(&msg, 0, sizeof(msg));
-		msg.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS;
-		msg.ext_params.smbus_ext_params.addr = p->addr;
-
-		msg.hdr.cmd = 0x00;
-
-		msg.cmd_data = (uint8_t *)&req;
-		msg.cmd_data_len = sizeof(req);
-
-		msg.recv_resp_cb_fn = set_endpoint_resp_handler;
-		msg.timeout_cb_fn = set_endpoint_resp_timeout;
-		msg.timeout_cb_fn_args = p;
-
-		mctp_cci_send_msg(find_mctp_by_smbus(p->bus), &msg);
-	}
-	
-}
 
 
 #include <shell/shell.h>
