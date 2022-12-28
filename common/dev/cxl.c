@@ -17,15 +17,17 @@
 #include <stdio.h>
 #include "sensor.h"
 #include "hal_i2c.h"
+#include "cci.h"
 
 uint8_t cxl_tmp_read(uint8_t sensor_num, int *reading)
 {
 	if (!reading || (sensor_num > SENSOR_NUM_MAX)) {
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
-
+	send_cci(CCI_GET_HEALTH_INFO);
+	int cxl_temp = get_cxl_temp();
 	sensor_val *sval = (sensor_val *)reading;
-	sval->integer = 0;
+	sval->integer = cxl_temp;
 	sval->fraction = 0;
 
 	return SENSOR_READ_SUCCESS;

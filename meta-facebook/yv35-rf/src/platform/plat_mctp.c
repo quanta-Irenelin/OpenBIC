@@ -211,16 +211,16 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 	return 0;
 }
 
-static int send_cci_test(const struct shell *shell, size_t argc, char **argv)
-{
-    send_cci();
-	return 0;
-}
+// static int send_cci_test(const struct shell *shell, size_t argc, char **argv)
+// {
+//    send_cci();
+// 	  return 0;
+// }
 
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
 			       SHELL_CMD(mctp_init, NULL, "MCTP init", test_pm8702_mctp_init),
 			       SHELL_CMD(set_eid, NULL, "Set endpoing ID", test_pm8702_set_eid),
-				   SHELL_CMD(send_cci_test, NULL, "send cci", send_cci_test),
+				//    SHELL_CMD(send_cci_test, NULL, "send cci", send_cci_test),
 				   SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);

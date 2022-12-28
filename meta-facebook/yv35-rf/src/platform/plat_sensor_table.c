@@ -41,7 +41,7 @@ sensor_cfg plat_sensor_config[] = {
 	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 	{ SENSOR_NUM_TEMP_CXL_CNTR, sensor_dev_cxl, I2C_BUS2, NONE, NONE,
 	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0,
-	  SENSOR_INIT_STATUS, NULL, NULL, post_cxl_temp_read, NULL, NULL },
+	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 
 	// ADC
 	{ SENSOR_NUM_VOL_STBY5V, sensor_dev_ast_adc, ADC_PORT14, NONE, NONE, stby_access, 711, 200,

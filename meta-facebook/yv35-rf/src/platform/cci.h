@@ -74,10 +74,12 @@ typedef struct _mctp_cci_cmd_handler {
 #define CCI_SUCCESS 0x0000
 #define CCI_INVALID_RESP 0x0002
 
+int get_cxl_temp();
+
 /*CCI command handler */
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params);
 bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
-void send_cci(void);
+void send_cci(uint32_t cci_opcode);
 
 /* send CCI command message through mctp */
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg);

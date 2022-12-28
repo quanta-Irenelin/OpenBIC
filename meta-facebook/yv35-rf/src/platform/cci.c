@@ -11,17 +11,16 @@
 #include "plat_mctp.h"
 
 LOG_MODULE_REGISTER(cci);
-
+static int cxl_temp = 0;
 static mctp_smbus_port smbus_port[] = {
 	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL},
 };
-
 static mctp_route_entry mctp_route_tbl[] = {
 	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL0 },
 	// { MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL1 },
 };
 
-static int cxl_temp = 0;
+
 
 static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t len,
 					  mctp_ext_params ext_params)
@@ -34,15 +33,22 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 	return MCTP_SUCCESS;
 }
 
+int get_cxl_temp()
+{
+	return cxl_temp;
+}
+
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 {
 	if (!mctp_p || !msg || !msg->cmd_data)
 		return MCTP_ERROR;
 
 	mctp *mctp_inst = (mctp *)mctp_p;
+
 	mctp_reg_endpoint_resolve_func(mctp_inst, get_mctp_route_info);
-	msg->hdr.msg_type = 0x08;
+	msg->hdr.msg_type = MCTP_MSG_TYPE_CCI;
 	msg->ext_params.tag_owner = 1;
+	
 	uint16_t len = sizeof(msg->hdr) + msg->cmd_data_len;
 	uint8_t buf[len];
 	memcpy(buf, &msg->hdr, sizeof(msg->hdr));
@@ -57,7 +63,7 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	return MCTP_SUCCESS;
 }
 
-void send_cci(void)
+void send_cci(uint32_t cci_opcode)
 {
 	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
 		mctp_route_entry *p = mctp_route_tbl + i;
@@ -67,7 +73,7 @@ void send_cci(void)
 		}
 		printk("Send CCI CMD for bus 0x%x, addr 0x%x\n", p->bus, p->addr);
 		struct _set_cci_req req = { 0 };
-		req.op = CCI_GET_HEALTH_INFO;
+		req.op = cci_opcode;
 
 		mctp_cci_msg msg;
 		memset(&msg, 0, sizeof(msg));
@@ -97,13 +103,4 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 	mctp_cci_cmd_resp_process(mctp_inst, buf, len, ext_params);
 	
 	return CCI_CC_SUCCESS;
-}
-
-bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading)
-{	
-	send_cci();
-	sensor_val *sval = (sensor_val *)reading;
-	sval->integer = cxl_temp;
-	sval->fraction = 0;
-	return true;
 }
