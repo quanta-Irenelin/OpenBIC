@@ -18,7 +18,25 @@
 #define _CCI_H
 #include "mctp.h"
  
-struct _set_cci_req {
+
+
+typedef enum {
+	CCI_GET_HEALTH_INFO = 0x4200,
+    CCI_GET_FW_INFO = 0x0200
+} CCI_CMD;
+
+struct _cci_handler_query_entry {
+	CCI_CMD type;
+	void (*handler_query)(void *, uint8_t *, uint16_t);
+};
+
+
+typedef struct __attribute__((packed)) {
+	uint8_t msg_type : 7;
+	uint8_t ic : 1;
+} mctp_cci_hdr;
+
+typedef struct __attribute__((packed)){
 	uint8_t msg_type;
 	uint8_t msg_tag;
 	uint8_t cci_rsv;
@@ -27,22 +45,12 @@ struct _set_cci_req {
 	uint8_t rsv;
 	uint16_t ret;
 	uint16_t stat;
-} __attribute__((packed));
-
-typedef enum {
-	CCI_GET_HEALTH_INFO = 0x4200,
-    CCI_GET_FW_INFO = 0x0200
-} CCI_CMD;
-
-typedef struct __attribute__((packed)) {
-	uint8_t msg_type : 7;
-	uint8_t ic : 1;
-} mctp_cci_hdr;
+}cci_msg_body;
 
 typedef struct {
 	mctp_cci_hdr hdr;
-	uint8_t *cmd_data;
-	uint16_t cmd_data_len;
+	cci_msg_body msg_body;
+	uint16_t cci_body_len;
 	mctp_ext_params ext_params;
 	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
 	void *recv_resp_cb_args;
@@ -58,7 +66,7 @@ typedef struct _mctp_cci_cmd_handler {
 	mctp_cci_cmd_fn fn;
 } mctp_cci_cmd_handler_t;
 
-#define DEV_TEMP_OFFSET 17
+#define DEV_TEMP_OFFSET 16
 #define CCI_CC_INVALID_INPUT 0x0002
 
 /*
