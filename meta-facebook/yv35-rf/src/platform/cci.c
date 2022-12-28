@@ -16,7 +16,9 @@ LOG_MODULE_REGISTER(cci);
 #define RESP_MSG_PROC_MUTEX_WAIT_TO_MS 1000
 #define TO_CHK_INTERVAL_MS 1000
 
+static uint16_t cci_tag = 0;
 static int cxl_temp = 0;
+
 static mctp_smbus_port smbus_port[] = {
 	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL},
 };
@@ -33,6 +35,7 @@ typedef struct _wait_msg {
 } wait_msg;
 
 static K_MUTEX_DEFINE(wait_recv_resp_mutex);
+
 static sys_slist_t wait_recv_resp_list = SYS_SLIST_STATIC_INIT(&wait_recv_resp_list);
 
 static uint8_t mctp_cci_msg_timeout_check(sys_slist_t *list, struct k_mutex *mutex)
@@ -83,7 +86,7 @@ static void mctp_cci_msg_timeout_monitor(void *dummy0, void *dummy1, void *dummy
 	}
 }
 
-static void mctp_cci_resp_handler(void *args, uint8_t *buf, uint16_t len)
+static void health_info_handler(void *args, uint8_t *buf, uint16_t len)
 {
 	if (!buf || !len)
 		return;
@@ -94,7 +97,7 @@ static void mctp_cci_resp_handler(void *args, uint8_t *buf, uint16_t len)
 }
 
 static struct _cci_handler_query_entry cci_query_tbl[] = {
-	{ CCI_GET_HEALTH_INFO, mctp_cci_resp_handler },
+	{ CCI_GET_HEALTH_INFO, health_info_handler },
 };
 
 
@@ -115,7 +118,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		LOG_WRN("mutex is locked over %d ms!", RESP_MSG_PROC_MUTEX_WAIT_TO_MS);
 		return MCTP_ERROR;
 	}
-	// _set_cci_req *hdr = (_set_cci_req *)buf;
+	cci_msg_payload *body = (cci_msg_payload *)buf;
 	sys_snode_t *node;
 	sys_snode_t *s_node;
 	sys_snode_t *pre_node = NULL;
@@ -124,7 +127,9 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 	SYS_SLIST_FOR_EACH_NODE_SAFE (&wait_recv_resp_list, node, s_node) {
 		wait_msg *p = (wait_msg *)node;
 		/* found the proper handler */
-		if (p->mctp_inst == mctp_inst) {
+		printk("msg tag: 0x%02x, 0x%02x\n", p->msg.msg_body.msg_tag, body->msg_body.msg_tag);
+		printk("op code: 0x%02x, 0x%02x\n", p->msg.msg_body.op, body->msg_body.op);
+		if ((p->mctp_inst == mctp_inst) && (p->msg.msg_body.msg_tag == body->msg_body.msg_tag) && (p->msg.msg_body.op == body->msg_body.op)) {
 			found_node = node;
 			sys_slist_remove(&wait_recv_resp_list, pre_node, node);
 			break;
@@ -195,7 +200,6 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 }
 
 
-
 void send_cci(uint32_t cci_opcode)
 {
 	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
@@ -213,6 +217,7 @@ void send_cci(uint32_t cci_opcode)
 				break;
 			}
 		}
+		req.msg_tag = cci_tag++;
 		req.op = cci_opcode;
 
 		mctp_cci_msg msg;

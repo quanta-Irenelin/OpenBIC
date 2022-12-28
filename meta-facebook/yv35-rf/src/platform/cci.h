@@ -50,6 +50,11 @@ typedef struct __attribute__((packed)){
 typedef struct {
 	mctp_cci_hdr hdr;
 	cci_msg_body msg_body;
+}cci_msg_payload;
+
+typedef struct {
+	mctp_cci_hdr hdr;
+	cci_msg_body msg_body;
 	uint16_t cci_body_len;
 	mctp_ext_params ext_params;
 	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
