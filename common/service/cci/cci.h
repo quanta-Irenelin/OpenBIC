@@ -51,8 +51,9 @@ typedef struct __attribute__((packed)){
 	uint8_t msg_tag;
 	uint8_t cci_rsv;
 	uint16_t op;
-	uint16_t pl_len;
-	uint8_t rsv;
+	int pl_len : 21;
+	uint8_t rsv : 2;
+	uint8_t BO : 1;
 	uint16_t ret;
 	uint16_t stat;
 } cci_msg_body;

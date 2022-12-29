@@ -99,6 +99,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 	sys_snode_t *s_node;
 	sys_snode_t *pre_node = NULL;
 	sys_snode_t *found_node = NULL;
+	printk("payload length: %02d\n", body->msg_body.pl_len);
 
 	SYS_SLIST_FOR_EACH_NODE_SAFE (&wait_recv_resp_list, node, s_node) {
 		wait_msg *p = (wait_msg *)node;
