@@ -15,17 +15,13 @@ LOG_MODULE_REGISTER(cci);
 #define DEFAULT_WAIT_TO_MS 3000
 #define RESP_MSG_PROC_MUTEX_WAIT_TO_MS 1000
 #define TO_CHK_INTERVAL_MS 1000
+#define CCI_MSG_MAX_RETRY 3
+#define CCI_MSG_TIMEOUT_MS 3000
+#define CCI_READ_EVENT_SUCCESS BIT(0)
+#define CCI_READ_EVENT_TIMEOUT BIT(1)
 
 static uint16_t cci_tag = 0;
 static int cxl_temp = 0;
-
-static mctp_smbus_port smbus_port[] = {
-	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL},
-};
-static mctp_route_entry mctp_route_tbl[] = {
-	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL0 },
-	// { MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL1 },
-};
 
 typedef struct _wait_msg {
 	sys_snode_t node;
@@ -100,7 +96,6 @@ static struct _cci_handler_query_entry cci_query_tbl[] = {
 	{ CCI_GET_HEALTH_INFO, health_info_handler },
 };
 
-
 static void mctp_cci_resp_timeout(void *args)
 {
 	mctp_route_entry *p = (mctp_route_entry *)args;
@@ -170,8 +165,10 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	
 	uint16_t len = sizeof(msg->hdr) + msg->cci_body_len;
 	uint8_t buf[len];
+
 	memcpy(buf, &msg->hdr, sizeof(msg->hdr));
 	memcpy(buf + sizeof(msg->hdr), &msg->msg_body, msg->cci_body_len);
+
 	LOG_HEXDUMP_DBG(buf, len, __func__);
 	uint8_t rc = mctp_send_msg(mctp_inst, buf, len, msg->ext_params);
 	if (rc == MCTP_ERROR) {
@@ -199,40 +196,90 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	return MCTP_SUCCESS;
 }
 
-
-void send_cci(uint32_t cci_opcode)
+void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)
 {
-	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
-		mctp_route_entry *p = mctp_route_tbl + i;
+	if (!args || !rbuf || !rlen)
+		return;
 
-		if (p->bus != smbus_port[0].conf.smbus_conf.bus){
+	cci_recv_resp_arg *recv_arg = (cci_recv_resp_arg *)args;
+
+	if (rlen > recv_arg->rbuf_len) {
+		LOG_WRN("[%s] response length(%d) is greater than buffer length(%d)!", __func__,
+			rlen, recv_arg->rbuf_len);
+		recv_arg->return_len = recv_arg->rbuf_len;
+	} else {
+		recv_arg->return_len = rlen;
+	}
+	memcpy(recv_arg->rbuf, rbuf, recv_arg->return_len);
+	uint8_t status = CCI_READ_EVENT_SUCCESS;
+	k_msgq_put(recv_arg->msgq, &status, K_NO_WAIT);
+}
+
+uint16_t mctp_cci_read(uint32_t cci_opcode, uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len)
+{
+	if (!receiver_bus || !msg )
+		return 0;
+
+	uint8_t event_msgq_buffer[1];
+	struct k_msgq event_msgq;
+
+	k_msgq_init(&event_msgq, event_msgq_buffer, sizeof(uint8_t), 1);
+
+	void (*handler_query)(void *, uint8_t *, uint16_t) = NULL;
+	for (int i = 0; i < ARRAY_SIZE(cci_query_tbl); i++) {
+		if (cci_opcode == cci_query_tbl[i].type) {
+			handler_query = cci_query_tbl[i].handler_query;
+			break;
+		}
+	}
+	cci_recv_resp_arg recv_arg;
+	recv_arg.msgq = &event_msgq;
+	recv_arg.rbuf = rbuf;
+	recv_arg.rbuf_len = rbuf_len;
+
+	msg->recv_resp_cb_fn = handler_query;
+	msg->recv_resp_cb_args = (void *)&recv_arg;
+	msg->timeout_cb_fn = mctp_cci_resp_timeout;
+	msg->timeout_cb_fn_args = (void *)&event_msgq;
+	msg->timeout_ms = CCI_MSG_TIMEOUT_MS;
+
+	for (uint8_t retry_count = 0; retry_count < CCI_MSG_MAX_RETRY; retry_count++) {
+		uint8_t event = 0;
+		if (mctp_cci_send_msg(find_mctp_by_smbus(receiver_bus), msg) == CCI_ERROR) {
+			LOG_WRN("[%s] send msg failed!", __func__);
 			continue;
 		}
-		printk("Send CCI CMD for bus 0x%x, addr 0x%x\n", p->bus, p->addr);
-		cci_msg_body req = { 0 };
-		void (*handler_query)(void *, uint8_t *, uint16_t) = NULL;
-		for (i = 0; i < ARRAY_SIZE(cci_query_tbl); i++) {
-			if (cci_opcode == cci_query_tbl[i].type) {
-				handler_query = cci_query_tbl[i].handler_query;
-				break;
-			}
+		cci_read_resp_handler(msg->recv_resp_cb_args, rbuf, rbuf_len);
+		if (k_msgq_get(&event_msgq, &event, K_MSEC(CCI_MSG_TIMEOUT_MS + 1000))) {
+			LOG_WRN("[%s] Failed to get status from msgq!", __func__);
+			continue;
 		}
-		req.msg_tag = cci_tag++;
-		req.op = cci_opcode;
-
-		mctp_cci_msg msg;
-		memset(&msg, 0, sizeof(msg));
-		msg.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS;
-		msg.ext_params.smbus_ext_params.addr = p->addr;
-		msg.msg_body = req;
-		msg.cci_body_len = sizeof(req);
-
-		msg.recv_resp_cb_fn = handler_query;
-		msg.timeout_cb_fn = mctp_cci_resp_timeout;
-		msg.timeout_cb_fn_args = p;
-
-		mctp_cci_send_msg(find_mctp_by_smbus(p->bus), &msg);
+		if (event == CCI_READ_EVENT_SUCCESS) {
+			return recv_arg.return_len;
+		}
 	}
+	LOG_WRN("[%s] retry reach max!", __func__);
+	return 0;
+}
+
+uint16_t cci_platform_read(uint32_t cci_opcode, uint32_t pl_len, mctp_ext_params ext_params, uint8_t receiver_bus)
+{
+	cci_msg_body req = { 0 };
+
+	req.msg_tag = cci_tag++;
+	req.op = cci_opcode;
+
+	mctp_cci_msg msg;
+	memset(&msg, 0, sizeof(msg));
+	memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
+
+	msg.msg_body = req;
+	msg.cci_body_len = sizeof(req);
+
+	int resp_len = pl_len;
+	uint8_t rbuf[resp_len];
+
+	return mctp_cci_read(cci_opcode, receiver_bus, &msg, rbuf, resp_len);
 }
 
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params)

@@ -21,6 +21,9 @@
 #include "hal_i2c.h"
 #include "plat_sensor_table.h"
 #include "plat_hook.h"
+#include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
 
 /**************************************************************************************************
  * INIT ARGS
@@ -32,12 +35,22 @@ ina233_init_arg ina233_init_args[] = {
 	[1] = { .is_init = false, .current_lsb = 0.001, .r_shunt = 0.005 },
 };
 
+cci_receiver_info receiver_info[] =
+{	
+	[0] = {	.CCI_CMD = CCI_GET_HEALTH_INFO,
+			.CCI_CMD_RESP_PL_LEN = HEALTH_INFO_PL_LEN,
+			.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
+			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
+			.receiver_bus = I2C_BUS_CXL },
+};
+
 /**************************************************************************************************
  *  PRE-HOOK/POST-HOOK ARGS
  **************************************************************************************************/
 /*typedef struct _isl69254iraz_t_pre_arg_ {
 	uint8_t vr_page;
 } isl69254iraz_t_pre_arg;*/
+
 isl69254iraz_t_pre_arg isl69254iraz_t_pre_read_args[] = {
 	[0] = { 0x0 },
 	[1] = { 0x1 },

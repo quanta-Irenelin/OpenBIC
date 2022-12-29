@@ -18,13 +18,16 @@
 #include "sensor.h"
 #include "hal_i2c.h"
 #include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
+#include "plat_hook.h"
 
-uint8_t cxl_tmp_read(uint8_t sensor_num, int *reading)
+uint8_t pm8702_tmp_read(uint8_t sensor_num, int *reading)
 {
 	if (!reading || (sensor_num > SENSOR_NUM_MAX)) {
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
-	send_cci(CCI_GET_HEALTH_INFO);
+	cci_platform_read(receiver_info->CCI_CMD,receiver_info->CCI_CMD_RESP_PL_LEN, receiver_info->ext_params, receiver_info->receiver_bus);
 	int cxl_temp = get_cxl_temp();
 	sensor_val *sval = (sensor_val *)reading;
 	sval->integer = cxl_temp;
@@ -33,12 +36,11 @@ uint8_t cxl_tmp_read(uint8_t sensor_num, int *reading)
 	return SENSOR_READ_SUCCESS;
 }
 
-uint8_t cxl_init(uint8_t sensor_num)
+uint8_t pm8702_init(uint8_t sensor_num)
 {
 	if (sensor_num > SENSOR_NUM_MAX) {
 		return SENSOR_INIT_UNSPECIFIED_ERROR;
 	}
-
-	sensor_config[sensor_config_index_map[sensor_num]].read = cxl_tmp_read;
+	sensor_config[sensor_config_index_map[sensor_num]].read = pm8702_tmp_read;
 	return SENSOR_INIT_SUCCESS;
 }

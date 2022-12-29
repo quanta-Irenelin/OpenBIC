@@ -16,6 +16,9 @@
 
 #ifndef PLAT_HOOK_H
 #define PLAT_HOOK_H
+#include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
 
 typedef struct _isl69254iraz_t_pre_arg_ {
 	uint8_t vr_page;
@@ -26,6 +29,13 @@ typedef struct _vr_pre_proc_arg {
 	uint8_t vr_page;
 } vr_pre_proc_arg;
 
+typedef struct _cci_receiver_info {
+	uint16_t CCI_CMD;
+	uint16_t CCI_CMD_RESP_PL_LEN;
+	mctp_ext_params ext_params;
+	uint8_t receiver_bus;
+}cci_receiver_info;
+
 /**************************************************************************************************
  * INIT ARGS
 **************************************************************************************************/
@@ -33,6 +43,7 @@ extern adc_asd_init_arg adc_asd_init_args[];
 extern ina230_init_arg SQ5220x_init_args[];
 extern ina233_init_arg ina233_init_args[];
 extern vr_pre_proc_arg vr_page_select[];
+extern cci_receiver_info receiver_info[];
 /**************************************************************************************************
  *  PRE-HOOK/POST-HOOK ARGS
  **************************************************************************************************/
@@ -43,5 +54,5 @@ extern isl69254iraz_t_pre_arg isl69254iraz_t_pre_read_args[];
  **************************************************************************************************/
 bool pre_isl69254iraz_t_read(uint8_t sensor_num, void *args);
 bool pre_vr_read(uint8_t sensor_num, void *args);
-
+void mctp_cci_set_route_info();
 #endif
