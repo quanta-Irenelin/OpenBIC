@@ -21,6 +21,7 @@
 #include "mctp.h"
 #include "plat_mctp.h"
 #include "plat_hook.h"
+#include "plat_cci.h"
 
 uint8_t pm8702_tmp_read(uint8_t sensor_num, int *reading)
 {

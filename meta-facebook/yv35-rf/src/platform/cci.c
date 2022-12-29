@@ -9,6 +9,7 @@
 #include <zephyr.h>
 #include "sensor.h"
 #include "plat_mctp.h"
+#include "plat_cci.h"
 
 LOG_MODULE_REGISTER(cci);
 
@@ -20,17 +21,11 @@ LOG_MODULE_REGISTER(cci);
 #define CCI_READ_EVENT_SUCCESS BIT(0)
 #define CCI_READ_EVENT_TIMEOUT BIT(1)
 
-static uint16_t cci_tag = 0;
-static int cxl_temp = 0;
-
-typedef struct _wait_msg {
-	sys_snode_t node;
-	mctp *mctp_inst;
-	int64_t exp_to_ms;
-	mctp_cci_msg msg;
-} wait_msg;
-
 static K_MUTEX_DEFINE(wait_recv_resp_mutex);
+
+static struct _cci_handler_query_entry cci_query_tbl[] = {
+	{ CCI_GET_HEALTH_INFO, health_info_handler },
+};
 
 static sys_slist_t wait_recv_resp_list = SYS_SLIST_STATIC_INIT(&wait_recv_resp_list);
 
@@ -82,20 +77,6 @@ static void mctp_cci_msg_timeout_monitor(void *dummy0, void *dummy1, void *dummy
 	}
 }
 
-static void health_info_handler(void *args, uint8_t *buf, uint16_t len)
-{
-	if (!buf || !len)
-		return;
-	cxl_temp = buf[DEV_TEMP_OFFSET];
-    printf("cxl temp: %02d\n", buf[DEV_TEMP_OFFSET]);
-
-	LOG_HEXDUMP_INF(buf, len, __func__);
-}
-
-static struct _cci_handler_query_entry cci_query_tbl[] = {
-	{ CCI_GET_HEALTH_INFO, health_info_handler },
-};
-
 static void mctp_cci_resp_timeout(void *args)
 {
 	mctp_route_entry *p = (mctp_route_entry *)args;
@@ -113,7 +94,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		LOG_WRN("mutex is locked over %d ms!", RESP_MSG_PROC_MUTEX_WAIT_TO_MS);
 		return MCTP_ERROR;
 	}
-	cci_msg_payload *body = (cci_msg_payload *)buf;
+	mctp_cci_pkt_payload *body = (mctp_cci_pkt_payload *)buf;
 	sys_snode_t *node;
 	sys_snode_t *s_node;
 	sys_snode_t *pre_node = NULL;
@@ -145,11 +126,6 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 	}
 
 	return MCTP_SUCCESS;
-}
-
-int get_cxl_temp()
-{
-	return cxl_temp;
 }
 
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
@@ -262,36 +238,18 @@ uint16_t mctp_cci_read(uint32_t cci_opcode, uint8_t receiver_bus, mctp_cci_msg *
 	return 0;
 }
 
-uint16_t cci_platform_read(uint32_t cci_opcode, uint32_t pl_len, mctp_ext_params ext_params, uint8_t receiver_bus)
-{
-	cci_msg_body req = { 0 };
-
-	req.msg_tag = cci_tag++;
-	req.op = cci_opcode;
-
-	mctp_cci_msg msg;
-	memset(&msg, 0, sizeof(msg));
-	memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
-
-	msg.msg_body = req;
-	msg.cci_body_len = sizeof(req);
-
-	int resp_len = pl_len;
-	uint8_t rbuf[resp_len];
-
-	return mctp_cci_read(cci_opcode, receiver_bus, &msg, rbuf, resp_len);
-}
-
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params)
 {
 	if (!mctp_p || !buf || !len)
 		return MCTP_ERROR;
 
 	mctp *mctp_inst = (mctp *)mctp_p;
-    uint8_t mctp_msg_type = buf[0];
-   	uint8_t pl_msg_resp = buf[1];
+	mctp_cci_pkt_payload *pkt_pl = (mctp_cci_pkt_payload *)buf;
 
-    if (mctp_msg_type!=MCTP_MSG_TYPE_CCI || (!pl_msg_resp)){
+    uint8_t mctp_msg_type = pkt_pl->hdr.msg_type;
+   	uint8_t cci_msg_resp = pkt_pl->msg_body.cci_msg_type;
+
+    if (mctp_msg_type!=MCTP_MSG_TYPE_CCI || (!cci_msg_resp)){
 		return CCI_INVALID_RESP;
     }
 	mctp_cci_cmd_resp_process(mctp_inst, buf, len, ext_params);

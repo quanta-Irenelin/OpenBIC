@@ -17,7 +17,8 @@
 #ifndef _CCI_H
 #define _CCI_H
 #include "mctp.h"
- 
+#include "plat_cci.h"
+
 typedef enum {
 	CCI_GET_HEALTH_INFO = 0x4200,
     CCI_GET_FW_INFO = 0x0200
@@ -46,7 +47,7 @@ typedef struct __attribute__((packed)) {
 } mctp_cci_hdr;
 
 typedef struct __attribute__((packed)){
-	uint8_t msg_type;
+	uint8_t cci_msg_type; /* 0h = Request, 1h = Response*/
 	uint8_t msg_tag;
 	uint8_t cci_rsv;
 	uint16_t op;
@@ -54,12 +55,12 @@ typedef struct __attribute__((packed)){
 	uint8_t rsv;
 	uint16_t ret;
 	uint16_t stat;
-}cci_msg_body;
+} cci_msg_body;
 
 typedef struct {
 	mctp_cci_hdr hdr;
 	cci_msg_body msg_body;
-}cci_msg_payload;
+} mctp_cci_pkt_payload;
 
 typedef struct {
 	mctp_cci_hdr hdr;
@@ -98,19 +99,24 @@ typedef struct _mctp_cci_cmd_handler {
 
 #define CCI_INVALID_RESP 0x0002
 
-int get_cxl_temp();
-
 struct cci_health_info_op_pl{
 	uint32_t health_status;
 	uint16_t dev_temp;
 	uint8_t data[12];
 } __attribute__((packed));
 
+typedef struct _wait_msg {
+	sys_snode_t node;
+	mctp *mctp_inst;
+	int64_t exp_to_ms;
+	mctp_cci_msg msg;
+} wait_msg;
 
 /*CCI command handler */
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params);
 bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
-uint16_t cci_platform_read(uint32_t cci_opcode, uint32_t pl_len, mctp_ext_params ext_params, uint8_t receiver_bus);
+void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen);
+uint16_t mctp_cci_read(uint32_t cci_opcode, uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len);
 
 /* send CCI command message through mctp */
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg);
