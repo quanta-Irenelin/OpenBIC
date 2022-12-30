@@ -27,7 +27,7 @@ uint16_t cci_platform_read(uint32_t cci_opcode, uint32_t pl_len, mctp_ext_params
 	memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
 
 	msg.msg_body = req;
-	msg.cci_body_len = sizeof(req);
+	msg.pl_data_len = 0;
 
 	int resp_len = pl_len;
 	uint8_t rbuf[resp_len];

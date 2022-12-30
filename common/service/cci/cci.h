@@ -47,7 +47,7 @@ typedef struct __attribute__((packed)) {
 } mctp_cci_hdr;
 
 typedef struct __attribute__((packed)){
-	uint8_t cci_msg_type; /* 0h = Request, 1h = Response*/
+	uint8_t cci_msg_req_resp; /* 0h = Request, 1h = Response*/
 	uint8_t msg_tag;
 	uint8_t cci_rsv;
 	uint16_t op;
@@ -66,7 +66,8 @@ typedef struct {
 typedef struct {
 	mctp_cci_hdr hdr;
 	cci_msg_body msg_body;
-	uint16_t cci_body_len;
+	uint8_t *pl_data;
+	uint16_t pl_data_len;
 	mctp_ext_params ext_params;
 	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
 	void *recv_resp_cb_args;
@@ -98,7 +99,7 @@ typedef struct _mctp_cci_cmd_handler {
 #define CCI_SUCCESS 0x0000
 #define CCI_ERROR 0x0001
 
-#define CCI_INVALID_RESP 0x0002
+#define CCI_INVALID_TYPE 0x0002
 
 struct cci_health_info_op_pl{
 	uint32_t health_status;
