@@ -18,9 +18,10 @@
 #define _PLAT_CCI_H
 #include "mctp.h"
 uint16_t cci_platform_read(uint32_t cci_opcode, uint32_t pl_len, mctp_ext_params ext_params, uint8_t receiver_bus);
+void health_info_handler(uint8_t *buf, uint16_t len);
 
 
-void health_info_handler(void *args, uint8_t *buf, uint16_t len);
+// void health_info_handler(void *args, uint8_t *buf, uint16_t len);
 int get_cxl_temp();
 
 #endif /* _PLAT_CCI_H */

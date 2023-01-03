@@ -23,9 +23,9 @@ LOG_MODULE_REGISTER(cci);
 
 static K_MUTEX_DEFINE(wait_recv_resp_mutex);
 
-static struct _cci_handler_query_entry cci_query_tbl[] = {
-	{ CCI_GET_HEALTH_INFO, health_info_handler },
-};
+// static struct _cci_handler_query_entry cci_query_tbl[] = {
+// 	{ CCI_GET_HEALTH_INFO, health_info_handler },
+// };
 
 static sys_slist_t wait_recv_resp_list = SYS_SLIST_STATIC_INIT(&wait_recv_resp_list);
 
@@ -198,35 +198,28 @@ void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)
 	k_msgq_put(recv_arg->msgq, &status, K_NO_WAIT);
 }
 
-uint16_t mctp_cci_read(uint32_t cci_opcode, uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len)
+uint16_t mctp_cci_read(uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len)
 {
 
 	CHECK_NULL_ARG_WITH_RETURN(msg, MCTP_ERROR);
 	CHECK_NULL_ARG_WITH_RETURN(rbuf, MCTP_ERROR);
-
 
 	uint8_t event_msgq_buffer[1];
 	struct k_msgq event_msgq;
 
 	k_msgq_init(&event_msgq, event_msgq_buffer, sizeof(uint8_t), 1);
 
-	void (*handler_query)(void *, uint8_t *, uint16_t) = NULL;
-	for (int i = 0; i < ARRAY_SIZE(cci_query_tbl); i++) {
-		if (cci_opcode == cci_query_tbl[i].type) {
-			handler_query = cci_query_tbl[i].handler_query;
-			break;
-		}
-	}
 	cci_recv_resp_arg recv_arg;
 	recv_arg.msgq = &event_msgq;
 	recv_arg.rbuf = rbuf;
 	recv_arg.rbuf_len = rbuf_len;
 
-	msg->recv_resp_cb_fn = handler_query;
+	msg->recv_resp_cb_fn = cci_read_resp_handler;
 	msg->recv_resp_cb_args = (void *)&recv_arg;
 	msg->timeout_cb_fn = mctp_cci_resp_timeout;
 	msg->timeout_cb_fn_args = (void *)&event_msgq;
 	msg->timeout_ms = CCI_MSG_TIMEOUT_MS;
+
 
 	for (uint8_t retry_count = 0; retry_count < CCI_MSG_MAX_RETRY; retry_count++) {
 		uint8_t event = 0;
@@ -234,7 +227,6 @@ uint16_t mctp_cci_read(uint32_t cci_opcode, uint8_t receiver_bus, mctp_cci_msg *
 			LOG_WRN("[%s] send msg failed!", __func__);
 			continue;
 		}
-		cci_read_resp_handler(msg->recv_resp_cb_args, rbuf, rbuf_len);
 		if (k_msgq_get(&event_msgq, &event, K_MSEC(CCI_MSG_TIMEOUT_MS + 1000))) {
 			LOG_WRN("[%s] Failed to get status from msgq!", __func__);
 			continue;
@@ -266,9 +258,9 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 		mctp_cci_cmd_resp_process(mctp_inst, buf, len, ext_params);
 		return CCI_CC_SUCCESS;
 	}
-	
+
 	/*TODO : request handler*/
-	
+
 	return CCI_CC_SUCCESS;
 }
 

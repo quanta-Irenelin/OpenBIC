@@ -199,6 +199,11 @@ void plat_mctp_init(void)
 
 
 #include <shell/shell.h>
+#include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
+#include "plat_hook.h"
+#include "plat_cci.h"
 static int test_pm8702_mctp_init(const struct shell *shell, size_t argc, char **argv)
 {
  	plat_mctp_init();
@@ -211,16 +216,17 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 	return 0;
 }
 
-// static int send_cci_test(const struct shell *shell, size_t argc, char **argv)
-// {
-//    send_cci();
-// 	  return 0;
-// }
+static int send_cci_test(const struct shell *shell, size_t argc, char **argv)
+{
+	cci_platform_read(receiver_info->CCI_CMD,receiver_info->CCI_CMD_RESP_PL_LEN, receiver_info->ext_params, receiver_info->receiver_bus);
+	get_cxl_temp();
+	return 0;
+}
 
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
 			       SHELL_CMD(mctp_init, NULL, "MCTP init", test_pm8702_mctp_init),
 			       SHELL_CMD(set_eid, NULL, "Set endpoing ID", test_pm8702_set_eid),
-				//    SHELL_CMD(send_cci_test, NULL, "send cci", send_cci_test),
+				   SHELL_CMD(send_cci_test, NULL, "send cci", send_cci_test),
 				   SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);

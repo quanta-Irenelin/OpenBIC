@@ -31,7 +31,7 @@ typedef enum {
 
 struct _cci_handler_query_entry {
 	CCI_CMD type;
-	void (*handler_query)(void *, uint8_t *, uint16_t);
+	void (*handler_query)(uint8_t *, uint16_t);
 };
 
 typedef struct _cci_recv_resp_arg {
@@ -77,6 +77,7 @@ typedef struct {
 }mctp_cci_msg;
 
 typedef uint8_t (*mctp_cci_cmd_fn)(void *, uint8_t *, uint16_t, uint8_t *, uint16_t *, void *);
+typedef uint8_t (*cci_cmd_proc_fn)(void *, uint8_t *, uint16_t, uint8_t *, uint16_t *, void *);
 
 typedef struct _mctp_cci_cmd_handler {
 	uint8_t cmd_code;
@@ -118,7 +119,7 @@ typedef struct _wait_msg {
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params);
 bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen);
-uint16_t mctp_cci_read(uint32_t cci_opcode, uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len);
+uint16_t mctp_cci_read(uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len);
 
 /* send CCI command message through mctp */
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg);
