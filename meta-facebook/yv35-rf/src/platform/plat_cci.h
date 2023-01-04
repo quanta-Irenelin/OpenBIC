@@ -17,8 +17,16 @@
 #ifndef _PLAT_CCI_H
 #define _PLAT_CCI_H
 #include "mctp.h"
-uint16_t cci_platform_read(uint32_t cci_opcode, uint32_t pl_len, mctp_ext_params ext_params, uint8_t receiver_bus);
+typedef struct _opcode_route_entry {
+	uint16_t op_code;
+	uint16_t CCI_REQ_PL_LEN; /*CCI Request paypload length */
+	uint16_t CCI_RESP_PL_LEN; /*CCI Response paypload length */
+} opcode_route_entry;
+
+
+uint16_t cci_platform_read(uint32_t cci_opcode, mctp_ext_params ext_params);
 void health_info_handler(uint8_t *buf, uint16_t len);
+void dimm_temp_handler(uint8_t *buf, uint16_t len);
 
 
 // void health_info_handler(void *args, uint8_t *buf, uint16_t len);

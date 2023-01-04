@@ -23,10 +23,6 @@ LOG_MODULE_REGISTER(cci);
 
 static K_MUTEX_DEFINE(wait_recv_resp_mutex);
 
-// static struct _cci_handler_query_entry cci_query_tbl[] = {
-// 	{ CCI_GET_HEALTH_INFO, health_info_handler },
-// };
-
 static sys_slist_t wait_recv_resp_list = SYS_SLIST_STATIC_INIT(&wait_recv_resp_list);
 
 static uint8_t mctp_cci_msg_timeout_check(sys_slist_t *list, struct k_mutex *mutex)
@@ -198,7 +194,7 @@ void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)
 	k_msgq_put(recv_arg->msgq, &status, K_NO_WAIT);
 }
 
-uint16_t mctp_cci_read(uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len)
+uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len)
 {
 
 	CHECK_NULL_ARG_WITH_RETURN(msg, MCTP_ERROR);
@@ -220,10 +216,9 @@ uint16_t mctp_cci_read(uint8_t receiver_bus, mctp_cci_msg *msg,uint8_t *rbuf, ui
 	msg->timeout_cb_fn_args = (void *)&event_msgq;
 	msg->timeout_ms = CCI_MSG_TIMEOUT_MS;
 
-
 	for (uint8_t retry_count = 0; retry_count < CCI_MSG_MAX_RETRY; retry_count++) {
 		uint8_t event = 0;
-		if (mctp_cci_send_msg(find_mctp_by_smbus(receiver_bus), msg) == CCI_ERROR) {
+		if (mctp_cci_send_msg(mctp_p, msg) == CCI_ERROR) {
 			LOG_WRN("[%s] send msg failed!", __func__);
 			continue;
 		}

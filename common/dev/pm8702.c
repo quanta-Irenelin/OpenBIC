@@ -28,7 +28,7 @@ uint8_t pm8702_tmp_read(uint8_t sensor_num, int *reading)
 	if (!reading || (sensor_num > SENSOR_NUM_MAX)) {
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
-	cci_platform_read(receiver_info->CCI_CMD,receiver_info->CCI_CMD_RESP_PL_LEN, receiver_info->ext_params, receiver_info->receiver_bus);
+	cci_platform_read(receiver_info->CCI_CMD, receiver_info->ext_params);
 	int cxl_temp = get_cxl_temp();
 	sensor_val *sval = (sensor_val *)reading;
 	sval->integer = cxl_temp;

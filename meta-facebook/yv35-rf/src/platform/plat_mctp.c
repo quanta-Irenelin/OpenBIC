@@ -168,7 +168,9 @@ void send_cmd_to_dev(struct k_timer *timer)
 	k_work_submit(&send_cmd_work);
 }
 
-void plat_mctp_init(void)
+static mctp *cci_mctp_init;
+
+void plat_mctp_init()
 {
 	LOG_INF("plat_mctp_init");
 
@@ -191,10 +193,15 @@ void plat_mctp_init(void)
 	mctp_reg_msg_rx_func(p->mctp_inst, mctp_msg_recv);
 
 	mctp_start(p->mctp_inst);
+	cci_mctp_init = p->mctp_inst;
 	/* Only send command to device when DC on */
 	k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
 }
 
+mctp *get_mctp_init()
+{
+	return cci_mctp_init;
+}
 
 
 
@@ -216,9 +223,15 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 	return 0;
 }
 
-static int send_cci_test(const struct shell *shell, size_t argc, char **argv)
+static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
 {
-	cci_platform_read(receiver_info->CCI_CMD,receiver_info->CCI_CMD_RESP_PL_LEN, receiver_info->ext_params, receiver_info->receiver_bus);
+	cci_platform_read(CCI_I2C_OFFSET_READ, receiver_info->ext_params);
+	return 0;
+}
+
+static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
+{
+	cci_platform_read(receiver_info->CCI_CMD, receiver_info->ext_params);
 	get_cxl_temp();
 	return 0;
 }
@@ -226,7 +239,9 @@ static int send_cci_test(const struct shell *shell, size_t argc, char **argv)
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
 			       SHELL_CMD(mctp_init, NULL, "MCTP init", test_pm8702_mctp_init),
 			       SHELL_CMD(set_eid, NULL, "Set endpoing ID", test_pm8702_set_eid),
-				   SHELL_CMD(send_cci_test, NULL, "send cci", send_cci_test),
+				   SHELL_CMD(read_cxl_temp, NULL, "read cxl temp", read_cxl_temp),
+				   SHELL_CMD(read_dimm_temp, NULL, "read dimm temp", read_dimm_temp),
+
 				   SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);

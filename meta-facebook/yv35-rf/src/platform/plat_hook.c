@@ -41,7 +41,12 @@ cci_receiver_info receiver_info[] =
 			.CCI_CMD_RESP_PL_LEN = HEALTH_INFO_PL_LEN,
 			.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
 			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
-			.receiver_bus = I2C_BUS_CXL },
+		},
+	[1] = {	.CCI_CMD = CCI_I2C_OFFSET_READ,
+			.CCI_CMD_RESP_PL_LEN = I2C_OFFSET_READ_PL_LEN,
+			.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
+			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
+		},
 };
 
 /**************************************************************************************************
