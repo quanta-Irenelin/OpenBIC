@@ -9,11 +9,10 @@
 #include <zephyr.h>
 #include "sensor.h"
 #include "plat_mctp.h"
+#include "pm8702.h"
 
 LOG_MODULE_REGISTER(plat_cci);
 
-static int dimm_temp = 0;
-static int cxl_temp = 0;
 static uint16_t cci_tag = 0;
 
 static struct _cci_handler_query_entry cci_query_tbl[] = {
@@ -27,13 +26,13 @@ static opcode_route_entry cci_opcode_tbl[2] = {
 };
 
 static uint8_t pl_data[20] =
-    {
-        0x00, 0x00, 0x19, 0x00, 
-        0x01, 0x00, 0x05, 0x00, 
-        0x01, 0x00, 0x00, 0x00,
-        0x02, 0x00, 0x00, 0x00,
-        0x01, 0x00, 0x00, 0x00, 
-    };
+{
+    0x00, 0x00, 0x19, 0x00, 
+    0x01, 0x00, 0x05, 0x00, 
+    0x01, 0x00, 0x00, 0x00,
+    0x02, 0x00, 0x00, 0x00,
+    0x01, 0x00, 0x00, 0x00, 
+};
 
 uint16_t cci_platform_read(uint32_t cci_opcode, mctp_ext_params ext_params)
 {   
@@ -79,25 +78,4 @@ uint16_t cci_platform_read(uint32_t cci_opcode, mctp_ext_params ext_params)
     return 0;
 }
 
-void health_info_handler(uint8_t *buf, uint16_t len)
-{
-	if (!buf || !len)
-		return;
-	LOG_HEXDUMP_INF(buf, len, __func__);
-    cxl_temp = buf[DEV_TEMP_OFFSET];
-    printf("cxl temp: %02d\n", buf[DEV_TEMP_OFFSET]);
-}
 
-void dimm_temp_handler(uint8_t *buf, uint16_t len)
-{
-	if (!buf || !len)
-		return;
-	LOG_HEXDUMP_INF(buf, len, __func__);
-    dimm_temp = buf[0];
-    printf("dimm temp: %02x, %02x\n", buf[12], buf[13]);
-}
-
-int get_cxl_temp()
-{
-	return cxl_temp;
-}

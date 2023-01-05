@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-#ifndef _PLAT_CCI_H
-#define _PLAT_CCI_H
-#include "mctp.h"
-typedef struct _opcode_route_entry {
-	uint16_t op_code;
-	uint16_t CCI_REQ_PL_LEN; /*CCI Request paypload length */
-	uint16_t CCI_RESP_PL_LEN; /*CCI Response paypload length */
-} opcode_route_entry;
+#ifndef PM8702_H
+#define PM8702_H
 
+void dimm_temp_handler(uint8_t *buf, uint16_t len);
+int get_dimm_temp();
 
-uint16_t cci_platform_read(uint32_t cci_opcode, mctp_ext_params ext_params);
+/*CCI (pm8702 vendor CMD) */
+#define	CCI_I2C_OFFSET_READ 0xc401 
 
-#endif /* _PLAT_CCI_H */
+/*CCI (pm8702 vendor CMD) Request paypload length */
+#define I2C_OFFSET_READ_REQ_PL_LEN 20 /*Size Bytes*/
+
+/*CCI (pm8702 vendor CMD) Response paypload length */
+#define I2C_OFFSET_READ_PL_LEN 2 /*Size Bytes*/
+
+struct cci_health_info_op_pl{
+	uint32_t health_status;
+	uint16_t dev_temp;
+	uint8_t data[12];
+} __attribute__((packed));
+
+#endif

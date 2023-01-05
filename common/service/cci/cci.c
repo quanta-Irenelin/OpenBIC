@@ -10,6 +10,7 @@
 #include "sensor.h"
 #include "plat_mctp.h"
 #include "plat_cci.h"
+#include "plat_hook.h"
 
 LOG_MODULE_REGISTER(cci);
 
@@ -20,6 +21,8 @@ LOG_MODULE_REGISTER(cci);
 #define CCI_MSG_TIMEOUT_MS 3000
 #define CCI_READ_EVENT_SUCCESS BIT(0)
 #define CCI_READ_EVENT_TIMEOUT BIT(1)
+static int cxl_temp = 0;
+
 
 static K_MUTEX_DEFINE(wait_recv_resp_mutex);
 
@@ -257,6 +260,21 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 	/*TODO : request handler*/
 
 	return CCI_CC_SUCCESS;
+}
+
+void health_info_handler(uint8_t *buf, uint16_t len)
+{
+	if (!buf || !len)
+		return;
+	LOG_HEXDUMP_INF(buf, len, __func__);
+    cxl_temp = buf[DEV_TEMP_OFFSET];
+    printf("cxl temp: %02d\n", buf[DEV_TEMP_OFFSET]);
+}
+
+int get_cxl_temp()
+{	
+	cci_platform_read(receiver_info->CCI_CMD, receiver_info->ext_params);
+	return cxl_temp;
 }
 
 K_THREAD_DEFINE(monitor_cci_msg, 1024, mctp_cci_msg_timeout_monitor, NULL, NULL, NULL, 7, 0, 0);

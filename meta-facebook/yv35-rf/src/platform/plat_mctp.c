@@ -34,6 +34,7 @@
 #include "plat_mctp.h"
 #include "plat_gpio.h"
 #include "cci.h"
+#include "pm8702.h"
 
 LOG_MODULE_REGISTER(plat_mctp);
 K_TIMER_DEFINE(send_cmd_timer, send_cmd_to_dev, NULL);
@@ -196,6 +197,7 @@ void plat_mctp_init()
 	cci_mctp_init = p->mctp_inst;
 	/* Only send command to device when DC on */
 	k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
+
 }
 
 mctp *get_mctp_init()
@@ -231,7 +233,6 @@ static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
 
 static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
 {
-	cci_platform_read(receiver_info->CCI_CMD, receiver_info->ext_params);
 	get_cxl_temp();
 	return 0;
 }
