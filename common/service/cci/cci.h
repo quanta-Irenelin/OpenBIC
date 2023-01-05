@@ -17,7 +17,6 @@
 #ifndef _CCI_H
 #define _CCI_H
 #include "mctp.h"
-#include "plat_cci.h"
 
 typedef enum {
 	CCI_GET_HEALTH_INFO = 0x4200,
@@ -70,7 +69,6 @@ typedef struct {
 	mctp_cci_hdr hdr;
 	cci_msg_body msg_body;
 	uint8_t *pl_data;
-	uint16_t pl_data_len;
 	mctp_ext_params ext_params;
 	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
 	void *recv_resp_cb_args;
@@ -118,10 +116,24 @@ bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen);
 void health_info_handler(uint8_t *buf, uint16_t len);
 int get_cxl_temp();
+uint16_t cci_get_temp(mctp_ext_params ext_params);
+
 
 /* send CCI command message through mctp */
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg);
 
 uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len);
+
+typedef struct{
+	uint8_t health_status;
+	uint8_t media_status;
+	uint8_t add_status;
+	uint8_t life_used;
+	uint16_t dev_temp;
+	uint32_t sd_cnt;
+	uint32_t volatile_mem_err_cnt;
+	uint32_t persistent_mem_err_cnt;
+}cci_health_info_op_pl;
+
 
 #endif /* _CCI_H */

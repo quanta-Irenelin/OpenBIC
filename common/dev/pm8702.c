@@ -21,10 +21,8 @@
 #include <logging/log.h>
 #include "plat_mctp.h"
 #include "plat_hook.h"
-#include "plat_cci.h"
 #include "pm8702.h"
 
-static int dimm_temp = 0;
 LOG_MODULE_REGISTER(pm8702);
 
 uint8_t pm8702_tmp_read(uint8_t sensor_num, int *reading)
@@ -32,7 +30,7 @@ uint8_t pm8702_tmp_read(uint8_t sensor_num, int *reading)
 	if (!reading || (sensor_num > SENSOR_NUM_MAX)) {
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
-	int cxl_temp = get_cxl_temp();
+	int cxl_temp = cci_get_temp(receiver_info->ext_params);
 	sensor_val *sval = (sensor_val *)reading;
 	sval->integer = cxl_temp;
 	sval->fraction = 0;
@@ -49,16 +47,36 @@ uint8_t pm8702_init(uint8_t sensor_num)
 	return SENSOR_INIT_SUCCESS;
 }
 
-void dimm_temp_handler(uint8_t *buf, uint16_t len)
-{
-	if (!buf || !len)
-		return;
-	LOG_HEXDUMP_INF(buf, len, __func__);
-    dimm_temp = buf[0];
-    printf("dimm temp: %02x, %02x\n", buf[12], buf[13]);
-}
 
-int get_dimm_temp()
+
+static uint8_t pl_data[20] =
 {
-	return dimm_temp;
+    0x00, 0x00, 0x19, 0x00, 
+    0x01, 0x00, 0x05, 0x00, 
+    0x01, 0x00, 0x00, 0x00,
+    0x02, 0x00, 0x00, 0x00,
+    0x01, 0x00, 0x00, 0x00, 
+};
+
+
+uint8_t cci_get_dimm_temp(mctp_ext_params ext_params)
+{
+    mctp *mctp_init = get_mctp_init();
+
+    mctp_cci_msg msg = { 0 };
+    memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
+	
+	msg.msg_body.op = CCI_I2C_OFFSET_READ;
+    msg.msg_body.pl_len = I2C_OFFSET_READ_REQ_PL_LEN;
+    memcpy(msg.pl_data, pl_data, I2C_OFFSET_READ_REQ_PL_LEN);
+
+	int resp_len = I2C_OFFSET_READ_PL_LEN;
+    uint8_t rbuf[resp_len];
+    mctp_cci_read(mctp_init, &msg, rbuf, resp_len);
+
+	LOG_HEXDUMP_INF(rbuf, resp_len, __func__);
+    // uint8_t dev_temp = rbuf[DEV_TEMP_OFFSET];
+    printf("dimm temp: %02x, %02x\n", rbuf[0], rbuf[1]);	
+
+	return 0;
 }

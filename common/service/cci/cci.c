@@ -9,7 +9,6 @@
 #include <zephyr.h>
 #include "sensor.h"
 #include "plat_mctp.h"
-#include "plat_cci.h"
 #include "plat_hook.h"
 
 LOG_MODULE_REGISTER(cci);
@@ -21,7 +20,7 @@ LOG_MODULE_REGISTER(cci);
 #define CCI_MSG_TIMEOUT_MS 3000
 #define CCI_READ_EVENT_SUCCESS BIT(0)
 #define CCI_READ_EVENT_TIMEOUT BIT(1)
-static int cxl_temp = 0;
+static uint16_t cci_tag = 0;
 
 
 static K_MUTEX_DEFINE(wait_recv_resp_mutex);
@@ -122,8 +121,8 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		wait_msg *p = (wait_msg *)found_node;
 		if (p->msg.recv_resp_cb_fn)
 			p->msg.recv_resp_cb_fn(
-				p->msg.recv_resp_cb_args, buf + sizeof(p->msg.hdr),
-				len - sizeof(p->msg.hdr)); /* remove mctp ctrl header for handler */
+				p->msg.recv_resp_cb_args, buf + sizeof(p->msg.hdr) + sizeof(p->msg.msg_body),
+				len - sizeof(p->msg.hdr) - sizeof(p->msg.msg_body)); /* remove mctp cci header and msg_body for handler */
 		free(p);
 	}
 
@@ -138,16 +137,17 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	mctp *mctp_inst = (mctp *)mctp_p;
 
 	if (!msg->msg_body.cci_msg_req_resp) {
+		msg->msg_body.msg_tag = cci_tag++;
 		msg->hdr.msg_type = MCTP_MSG_TYPE_CCI;
 		msg->ext_params.tag_owner = 1;
 	}
 
-	uint16_t len = sizeof(msg->hdr) + sizeof(msg->msg_body)+ msg->pl_data_len;
+	uint16_t len = sizeof(msg->hdr) + sizeof(msg->msg_body)+ msg->msg_body.pl_len;
 	uint8_t buf[len];
 
 	memcpy(buf, &msg->hdr, sizeof(msg->hdr));
 	memcpy(buf + sizeof(msg->hdr), &msg->msg_body, sizeof(msg->msg_body));
-	memcpy(buf + sizeof(msg->hdr) + sizeof(msg->msg_body), msg->pl_data, msg->pl_data_len);
+	memcpy(buf + sizeof(msg->hdr) + sizeof(msg->msg_body), msg->pl_data, msg->msg_body.pl_len);
 	
 	LOG_HEXDUMP_DBG(buf, len, __func__);
 
@@ -262,19 +262,26 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 	return CCI_CC_SUCCESS;
 }
 
-void health_info_handler(uint8_t *buf, uint16_t len)
-{
-	if (!buf || !len)
-		return;
-	LOG_HEXDUMP_INF(buf, len, __func__);
-    cxl_temp = buf[DEV_TEMP_OFFSET];
-    printf("cxl temp: %02d\n", buf[DEV_TEMP_OFFSET]);
-}
 
-int get_cxl_temp()
-{	
-	cci_platform_read(receiver_info->CCI_CMD, receiver_info->ext_params);
-	return cxl_temp;
+uint16_t cci_get_temp(mctp_ext_params ext_params)
+{
+    mctp *mctp_init = get_mctp_init();
+
+    mctp_cci_msg msg = { 0 };
+    memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
+
+    msg.msg_body.op = CCI_GET_HEALTH_INFO;
+    msg.msg_body.pl_len = HEALTH_INFO_REQ_PL_LEN;
+    
+	int resp_len = sizeof(cci_health_info_op_pl);
+    uint8_t rbuf[resp_len];
+    mctp_cci_read(mctp_init, &msg, rbuf, resp_len);
+
+	LOG_HEXDUMP_INF(rbuf, resp_len, __func__);
+	cci_health_info_op_pl *resp_p = (cci_health_info_op_pl *)rbuf;
+	uint16_t dev_temp = resp_p->dev_temp;
+
+	return dev_temp;
 }
 
 K_THREAD_DEFINE(monitor_cci_msg, 1024, mctp_cci_msg_timeout_monitor, NULL, NULL, NULL, 7, 0, 0);

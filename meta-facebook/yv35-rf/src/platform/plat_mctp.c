@@ -212,7 +212,6 @@ mctp *get_mctp_init()
 #include "mctp.h"
 #include "plat_mctp.h"
 #include "plat_hook.h"
-#include "plat_cci.h"
 static int test_pm8702_mctp_init(const struct shell *shell, size_t argc, char **argv)
 {
  	plat_mctp_init();
@@ -227,13 +226,16 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 
 static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
 {
-	cci_platform_read(CCI_I2C_OFFSET_READ, receiver_info->ext_params);
+	// cci_platform_read(CCI_I2C_OFFSET_READ, receiver_info->ext_params);
+	cci_get_dimm_temp(receiver_info->ext_params);
 	return 0;
 }
 
 static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
 {
-	get_cxl_temp();
+	// get_cxl_temp();
+	int dev_temp = cci_get_temp(receiver_info->ext_params);
+	printk("device temp : %d\n", dev_temp);
 	return 0;
 }
 

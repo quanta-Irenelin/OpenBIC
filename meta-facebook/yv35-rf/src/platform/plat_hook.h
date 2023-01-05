@@ -36,6 +36,10 @@ typedef struct _cci_receiver_info {
 	uint8_t receiver_bus;
 }cci_receiver_info;
 
+typedef struct _dimm_info {
+	uint8_t data[20];
+}dimm_info;
+
 /**************************************************************************************************
  * INIT ARGS
 **************************************************************************************************/
