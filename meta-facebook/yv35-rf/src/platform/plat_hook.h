@@ -34,11 +34,11 @@ typedef struct _cci_receiver_info {
 	uint16_t CCI_CMD_RESP_PL_LEN;
 	mctp_ext_params ext_params;
 	uint8_t receiver_bus;
-}cci_receiver_info;
+} cci_receiver_info;
 
 typedef struct _dimm_info {
 	uint8_t data[20];
-}dimm_info;
+} dimm_info;
 
 /**************************************************************************************************
  * INIT ARGS

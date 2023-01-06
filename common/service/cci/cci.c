@@ -27,7 +27,6 @@ static sys_slist_t wait_recv_resp_list = SYS_SLIST_STATIC_INIT(&wait_recv_resp_l
 
 static uint8_t mctp_cci_msg_timeout_check(sys_slist_t *list, struct k_mutex *mutex)
 {
-
 	CHECK_NULL_ARG_WITH_RETURN(list, MCTP_ERROR);
 	CHECK_NULL_ARG_WITH_RETURN(mutex, MCTP_ERROR);
 
@@ -77,12 +76,11 @@ static void mctp_cci_msg_timeout_monitor(void *dummy0, void *dummy1, void *dummy
 static void mctp_cci_resp_timeout(void *args)
 {
 	mctp_route_entry *p = (mctp_route_entry *)args;
-	printk("[%s]  send cci failed on endpoint 0x%x, bus %d \n", __func__, p->endpoint,
-	       p->bus);
+	printk("[%s]  send cci failed on endpoint 0x%x, bus %d \n", __func__, p->endpoint, p->bus);
 }
 
 static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t len,
-					  mctp_ext_params ext_params)
+					 mctp_ext_params ext_params)
 {
 	CHECK_NULL_ARG_WITH_RETURN(mctp_inst, MCTP_ERROR);
 	CHECK_NULL_ARG_WITH_RETURN(buf, MCTP_ERROR);
@@ -93,7 +91,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 	sys_snode_t *pre_node = NULL;
 	sys_snode_t *found_node = NULL;
 	printk("payload length: %02d\n", cci_hdr->pl_len);
-	
+
 	if (k_mutex_lock(&wait_recv_resp_mutex, K_MSEC(RESP_MSG_PROC_MUTEX_WAIT_TO_MS))) {
 		LOG_WRN("mutex is locked over %d ms!", RESP_MSG_PROC_MUTEX_WAIT_TO_MS);
 		return MCTP_ERROR;
@@ -104,7 +102,8 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		/* found the proper handler */
 		printk("msg tag: 0x%02x, 0x%02x\n", p->msg.hdr.msg_tag, cci_hdr->msg_tag);
 		printk("op code: 0x%02x, 0x%02x\n", p->msg.hdr.op, cci_hdr->op);
-		if ((p->mctp_inst == mctp_inst) && (p->msg.hdr.msg_tag == cci_hdr->msg_tag) && (p->msg.hdr.op == cci_hdr->op)) {
+		if ((p->mctp_inst == mctp_inst) && (p->msg.hdr.msg_tag == cci_hdr->msg_tag) &&
+		    (p->msg.hdr.op == cci_hdr->op)) {
 			found_node = node;
 			sys_slist_remove(&wait_recv_resp_list, pre_node, node);
 			break;
@@ -119,7 +118,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		wait_msg *p = (wait_msg *)found_node;
 		if (p->msg.recv_resp_cb_fn)
 			p->msg.recv_resp_cb_fn(
-				p->msg.recv_resp_cb_args, buf + sizeof(p->msg.hdr) ,
+				p->msg.recv_resp_cb_args, buf + sizeof(p->msg.hdr),
 				len - sizeof(p->msg.hdr)); /* remove mctp cci header for handler */
 		free(p);
 	}
@@ -144,7 +143,7 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	uint8_t buf[len];
 
 	memcpy(buf, &msg->hdr, sizeof(msg->hdr));
-	if(msg->hdr.pl_len){
+	if (msg->hdr.pl_len) {
 		memcpy(buf + sizeof(msg->hdr), msg->pl_data, msg->hdr.pl_len);
 	}
 	LOG_HEXDUMP_DBG(buf, len, __func__);
@@ -195,9 +194,8 @@ void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)
 	k_msgq_put(recv_arg->msgq, &status, K_NO_WAIT);
 }
 
-uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len)
+uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg, uint8_t *rbuf, uint16_t rbuf_len)
 {
-
 	CHECK_NULL_ARG_WITH_RETURN(msg, 0);
 	CHECK_NULL_ARG_WITH_RETURN(rbuf, 0);
 
@@ -243,14 +241,14 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 	mctp *mctp_inst = (mctp *)mctp_p;
 	mctp_cci_hdr *cci_hdr = (mctp_cci_hdr *)buf;
 
-    uint8_t mctp_msg_type = cci_hdr->msg_type;
-   	uint8_t cci_msg_resp = cci_hdr->cci_msg_req_resp;
+	uint8_t mctp_msg_type = cci_hdr->msg_type;
+	uint8_t cci_msg_resp = cci_hdr->cci_msg_req_resp;
 
-    if(mctp_msg_type != MCTP_MSG_TYPE_CCI){
+	if (mctp_msg_type != MCTP_MSG_TYPE_CCI) {
 		return CCI_INVALID_TYPE;
-    }
+	}
 
-	if(cci_msg_resp){
+	if (cci_msg_resp) {
 		mctp_cci_cmd_resp_process(mctp_inst, buf, len, ext_params);
 		return CCI_CC_SUCCESS;
 	}
@@ -260,21 +258,20 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 	return CCI_CC_SUCCESS;
 }
 
-
 bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp)
-{	
-	if (!mctp_p || !chip_temp ){
+{
+	if (!mctp_p || !chip_temp) {
 		return false;
 	}
 
-    mctp_cci_msg msg = { 0 };
-    memcpy(&msg.ext_params, &ext_params, sizeof(msg.ext_params));
+	mctp_cci_msg msg = { 0 };
+	memcpy(&msg.ext_params, &ext_params, sizeof(msg.ext_params));
 
-    msg.hdr.op = CCI_GET_HEALTH_INFO;
-    msg.hdr.pl_len = HEALTH_INFO_REQ_PL_LEN;
-    
+	msg.hdr.op = CCI_GET_HEALTH_INFO;
+	msg.hdr.pl_len = HEALTH_INFO_REQ_PL_LEN;
+
 	int resp_len = sizeof(cci_health_info_resp);
-    uint8_t rbuf[resp_len];
+	uint8_t rbuf[resp_len];
 
 	if (!mctp_cci_read(mctp_p, &msg, rbuf, resp_len)) {
 		LOG_ERR("[%s] mctp_pldm_read fail", __func__);

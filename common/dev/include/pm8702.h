@@ -21,7 +21,7 @@ void dimm_temp_handler(uint8_t *buf, uint16_t len);
 int get_dimm_temp();
 
 /*CCI (pm8702 vendor CMD) */
-#define	CCI_I2C_OFFSET_READ 0xc401 
+#define CCI_I2C_OFFSET_READ 0xc401
 
 /*CCI (pm8702 vendor CMD) Request paypload length */
 #define I2C_OFFSET_READ_REQ_PL_LEN 20 /*Size Bytes*/

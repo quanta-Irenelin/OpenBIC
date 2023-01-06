@@ -42,7 +42,7 @@ K_WORK_DEFINE(send_cmd_work, send_cmd_to_dev_handler);
 static mctp *cci_mctp_init;
 
 static mctp_smbus_port smbus_port[] = {
-	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL},
+	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL },
 };
 
 static mctp_route_entry mctp_route_tbl[] = {
@@ -80,7 +80,7 @@ static void set_dev_endpoint(void)
 	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
 		mctp_route_entry *p = mctp_route_tbl + i;
 
-		if (p->bus != smbus_port[0].conf.smbus_conf.bus){
+		if (p->bus != smbus_port[0].conf.smbus_conf.bus) {
 			continue;
 		}
 		printk("Prepare send endpoint bus 0x%x, addr 0x%x\n", p->bus, p->addr);
@@ -105,7 +105,6 @@ static void set_dev_endpoint(void)
 
 		mctp_ctrl_send_msg(find_mctp_by_smbus(p->bus), &msg);
 	}
-	
 }
 
 static uint8_t mctp_msg_recv(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params)
@@ -135,8 +134,7 @@ static uint8_t mctp_msg_recv(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 	return MCTP_SUCCESS;
 }
 
-uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst,
-				   mctp_ext_params *ext_params)
+uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst, mctp_ext_params *ext_params)
 {
 	if (!mctp_inst || !ext_params)
 		return MCTP_ERROR;
@@ -183,10 +181,8 @@ void plat_mctp_init()
 	}
 
 	LOG_DBG("mctp_inst = %p", p->mctp_inst);
-	uint8_t rc =
-		mctp_set_medium_configure(p->mctp_inst, MCTP_MEDIUM_TYPE_SMBUS, p->conf);
-	LOG_DBG("mctp_set_medium_configure %s",
-		(rc == MCTP_SUCCESS) ? "success" : "failed");
+	uint8_t rc = mctp_set_medium_configure(p->mctp_inst, MCTP_MEDIUM_TYPE_SMBUS, p->conf);
+	LOG_DBG("mctp_set_medium_configure %s", (rc == MCTP_SUCCESS) ? "success" : "failed");
 
 	mctp_reg_endpoint_resolve_func(p->mctp_inst, get_mctp_route_info);
 	mctp_reg_msg_rx_func(p->mctp_inst, mctp_msg_recv);
@@ -194,7 +190,7 @@ void plat_mctp_init()
 	mctp_start(p->mctp_inst);
 	cci_mctp_init = p->mctp_inst;
 	/* Only send command to device when DC on */
-	if(gpio_get(FM_POWER_EN) == POWER_ON){
+	if (gpio_get(FM_POWER_EN) == POWER_ON) {
 		k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
 	}
 }
@@ -204,8 +200,6 @@ mctp *get_mctp_init()
 	return cci_mctp_init;
 }
 
-
-
 #include <shell/shell.h>
 #include "cci.h"
 #include "mctp.h"
@@ -213,13 +207,13 @@ mctp *get_mctp_init()
 #include "plat_hook.h"
 static int test_pm8702_mctp_init(const struct shell *shell, size_t argc, char **argv)
 {
- 	plat_mctp_init();
+	plat_mctp_init();
 	return 0;
 };
 
 static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **argv)
 {
-    set_dev_endpoint();
+	set_dev_endpoint();
 	return 0;
 }
 
@@ -230,9 +224,9 @@ static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
 }
 
 static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
-{	
+{
 	mctp *mctp_inst = get_mctp_init();
-	int16_t cxl_temp =0;
+	int16_t cxl_temp = 0;
 	cci_get_chip_temp(mctp_inst, receiver_info[0].ext_params, &cxl_temp);
 	printk("device temp : %d\n", cxl_temp);
 	return 0;
@@ -241,9 +235,9 @@ static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
 SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
 			       SHELL_CMD(mctp_init, NULL, "MCTP init", test_pm8702_mctp_init),
 			       SHELL_CMD(set_eid, NULL, "Set endpoing ID", test_pm8702_set_eid),
-				   SHELL_CMD(read_cxl_temp, NULL, "read cxl temp", read_cxl_temp),
-				   SHELL_CMD(read_dimm_temp, NULL, "read dimm temp", read_dimm_temp),
+			       SHELL_CMD(read_cxl_temp, NULL, "read cxl temp", read_cxl_temp),
+			       SHELL_CMD(read_dimm_temp, NULL, "read dimm temp", read_dimm_temp),
 
-				   SHELL_SUBCMD_SET_END /* Array terminated. */
+			       SHELL_SUBCMD_SET_END /* Array terminated. */
 );
 SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);

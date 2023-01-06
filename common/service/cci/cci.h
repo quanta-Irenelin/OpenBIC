@@ -20,7 +20,7 @@
 
 typedef enum {
 	CCI_GET_HEALTH_INFO = 0x4200,
-    CCI_GET_FW_INFO = 0x0200,
+	CCI_GET_FW_INFO = 0x0200,
 } CCI_CMD;
 
 /*CCI Request paypload length */
@@ -66,7 +66,7 @@ typedef struct {
 	uint16_t timeout_ms;
 	void (*timeout_cb_fn)(void *);
 	void *timeout_cb_fn_args;
-}mctp_cci_msg;
+} mctp_cci_msg;
 
 typedef uint8_t (*mctp_cci_cmd_fn)(void *, uint8_t *, uint16_t, uint8_t *, uint16_t *, void *);
 typedef uint8_t (*cci_cmd_proc_fn)(void *, uint8_t *, uint16_t, uint8_t *, uint16_t *, void *);
@@ -93,7 +93,6 @@ typedef struct _mctp_cci_cmd_handler {
 #define CCI_ERROR 0x0001
 #define CCI_INVALID_TYPE 0x0002
 
-
 typedef struct _wait_msg {
 	sys_snode_t node;
 	mctp *mctp_inst;
@@ -109,13 +108,12 @@ void health_info_handler(uint8_t *buf, uint16_t len);
 int get_cxl_temp();
 bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp);
 
-
 /* send CCI command message through mctp */
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg);
 
-uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t rbuf_len);
+uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg, uint8_t *rbuf, uint16_t rbuf_len);
 
-typedef struct{
+typedef struct {
 	uint8_t health_status;
 	uint8_t media_status;
 	uint8_t additional_status;
@@ -124,7 +122,6 @@ typedef struct{
 	uint32_t shutdown_cnt;
 	uint32_t volatile_mem_err_cnt;
 	uint32_t persistent_mem_err_cnt;
-}cci_health_info_resp;
-
+} cci_health_info_resp;
 
 #endif /* _CCI_H */
