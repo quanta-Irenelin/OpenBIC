@@ -28,8 +28,8 @@ typedef enum {
 #define GET_FW_INFO_REQ_PL_LEN 0
 
 /*CCI Response paypload length */
-#define HEALTH_INFO_PL_LEN 18 /*Size Bytes*/
-#define GET_FW_INFO_PL_LEN 80
+#define HEALTH_INFO_RESP_PL_LEN 18 /*Size Bytes*/
+#define GET_FW_INFO_RESP_PL_LEN 80
 
 struct _cci_handler_query_entry {
 	CCI_CMD type;
@@ -116,7 +116,7 @@ bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen);
 void health_info_handler(uint8_t *buf, uint16_t len);
 int get_cxl_temp();
-uint16_t cci_get_temp(mctp_ext_params ext_params);
+uint16_t cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params);
 
 
 /* send CCI command message through mctp */
@@ -127,13 +127,13 @@ uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg,uint8_t *rbuf, uint16_t r
 typedef struct{
 	uint8_t health_status;
 	uint8_t media_status;
-	uint8_t add_status;
+	uint8_t additional_status;
 	uint8_t life_used;
-	uint16_t dev_temp;
-	uint32_t sd_cnt;
+	int16_t dev_temp;
+	uint32_t shutdown_cnt;
 	uint32_t volatile_mem_err_cnt;
 	uint32_t persistent_mem_err_cnt;
-}cci_health_info_op_pl;
+}cci_health_info_resp;
 
 
 #endif /* _CCI_H */

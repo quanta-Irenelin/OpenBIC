@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stdlib.h>
 #include <stdio.h>
 #include "sensor.h"
 #include "hal_i2c.h"
@@ -30,7 +31,8 @@ uint8_t pm8702_tmp_read(uint8_t sensor_num, int *reading)
 	if (!reading || (sensor_num > SENSOR_NUM_MAX)) {
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
-	int cxl_temp = cci_get_temp(receiver_info->ext_params);
+	mctp *mctp_inst = get_mctp_init();
+	int cxl_temp = cci_get_chip_temp(mctp_inst, receiver_info->ext_params);
 	sensor_val *sval = (sensor_val *)reading;
 	sval->integer = cxl_temp;
 	sval->fraction = 0;
@@ -47,8 +49,6 @@ uint8_t pm8702_init(uint8_t sensor_num)
 	return SENSOR_INIT_SUCCESS;
 }
 
-
-
 static uint8_t pl_data[20] =
 {
     0x00, 0x00, 0x19, 0x00, 
@@ -59,7 +59,7 @@ static uint8_t pl_data[20] =
 };
 
 
-uint8_t cci_get_dimm_temp(mctp_ext_params ext_params)
+uint8_t pm8702_get_dimm_temp(mctp_ext_params ext_params)
 {
     mctp *mctp_init = get_mctp_init();
 
@@ -68,15 +68,20 @@ uint8_t cci_get_dimm_temp(mctp_ext_params ext_params)
 	
 	msg.msg_body.op = CCI_I2C_OFFSET_READ;
     msg.msg_body.pl_len = I2C_OFFSET_READ_REQ_PL_LEN;
+	msg.pl_data = (uint8_t *)malloc(I2C_OFFSET_READ_REQ_PL_LEN);
+	if (msg.pl_data == NULL) {
+		LOG_ERR("Failed to allocate payload data.");
+		return -1;
+	}
     memcpy(msg.pl_data, pl_data, I2C_OFFSET_READ_REQ_PL_LEN);
 
-	int resp_len = I2C_OFFSET_READ_PL_LEN;
+	int resp_len = I2C_OFFSET_READ_RESP_PL_LEN;
     uint8_t rbuf[resp_len];
     mctp_cci_read(mctp_init, &msg, rbuf, resp_len);
 
 	LOG_HEXDUMP_INF(rbuf, resp_len, __func__);
     // uint8_t dev_temp = rbuf[DEV_TEMP_OFFSET];
     printf("dimm temp: %02x, %02x\n", rbuf[0], rbuf[1]);	
-
+	free(msg.pl_data);
 	return 0;
 }

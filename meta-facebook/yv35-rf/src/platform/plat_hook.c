@@ -38,17 +38,15 @@ ina233_init_arg ina233_init_args[] = {
 
 cci_receiver_info receiver_info[] =
 {	
-	[0] = {	.CCI_CMD = CCI_GET_HEALTH_INFO,
-			.CCI_CMD_RESP_PL_LEN = HEALTH_INFO_PL_LEN,
+	[0] = {	
+			.CCI_CMD = CCI_GET_HEALTH_INFO,
+			.CCI_CMD_RESP_PL_LEN = HEALTH_INFO_RESP_PL_LEN,
 			.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
 			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
-		},
-	[1] = {	.CCI_CMD = CCI_I2C_OFFSET_READ,
-			.CCI_CMD_RESP_PL_LEN = I2C_OFFSET_READ_PL_LEN,
-			.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
-			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
-		},
+			},
 };
+
+
 
 
 /**************************************************************************************************

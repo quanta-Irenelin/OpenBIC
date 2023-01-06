@@ -20,8 +20,6 @@ LOG_MODULE_REGISTER(cci);
 #define CCI_MSG_TIMEOUT_MS 3000
 #define CCI_READ_EVENT_SUCCESS BIT(0)
 #define CCI_READ_EVENT_TIMEOUT BIT(1)
-static uint16_t cci_tag = 0;
-
 
 static K_MUTEX_DEFINE(wait_recv_resp_mutex);
 
@@ -137,7 +135,7 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	mctp *mctp_inst = (mctp *)mctp_p;
 
 	if (!msg->msg_body.cci_msg_req_resp) {
-		msg->msg_body.msg_tag = cci_tag++;
+		msg->msg_body.msg_tag = mctp_inst->pldm_inst_id++;
 		msg->hdr.msg_type = MCTP_MSG_TYPE_CCI;
 		msg->ext_params.tag_owner = 1;
 	}
@@ -147,8 +145,9 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 
 	memcpy(buf, &msg->hdr, sizeof(msg->hdr));
 	memcpy(buf + sizeof(msg->hdr), &msg->msg_body, sizeof(msg->msg_body));
-	memcpy(buf + sizeof(msg->hdr) + sizeof(msg->msg_body), msg->pl_data, msg->msg_body.pl_len);
-	
+	if(msg->msg_body.pl_len){
+		memcpy(buf + sizeof(msg->hdr) + sizeof(msg->msg_body), msg->pl_data, msg->msg_body.pl_len);
+	}
 	LOG_HEXDUMP_DBG(buf, len, __func__);
 
 	uint8_t rc = mctp_send_msg(mctp_inst, buf, len, msg->ext_params);
@@ -263,23 +262,21 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 }
 
 
-uint16_t cci_get_temp(mctp_ext_params ext_params)
+uint16_t cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params)
 {
-    mctp *mctp_init = get_mctp_init();
-
     mctp_cci_msg msg = { 0 };
-    memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
+    memcpy(&msg.ext_params, &ext_params, sizeof(msg.ext_params));
 
     msg.msg_body.op = CCI_GET_HEALTH_INFO;
     msg.msg_body.pl_len = HEALTH_INFO_REQ_PL_LEN;
     
-	int resp_len = sizeof(cci_health_info_op_pl);
+	int resp_len = sizeof(cci_health_info_resp);
     uint8_t rbuf[resp_len];
-    mctp_cci_read(mctp_init, &msg, rbuf, resp_len);
+    mctp_cci_read(mctp_p, &msg, rbuf, resp_len);
 
 	LOG_HEXDUMP_INF(rbuf, resp_len, __func__);
-	cci_health_info_op_pl *resp_p = (cci_health_info_op_pl *)rbuf;
-	uint16_t dev_temp = resp_p->dev_temp;
+	cci_health_info_resp *resp_p = (cci_health_info_resp *)rbuf;
+	int16_t dev_temp = resp_p->dev_temp;
 
 	return dev_temp;
 }

@@ -27,9 +27,9 @@ int get_dimm_temp();
 #define I2C_OFFSET_READ_REQ_PL_LEN 20 /*Size Bytes*/
 
 /*CCI (pm8702 vendor CMD) Response paypload length */
-#define I2C_OFFSET_READ_PL_LEN 2 /*Size Bytes*/
+#define I2C_OFFSET_READ_RESP_PL_LEN 2 /*Size Bytes*/
 
-uint8_t cci_get_dimm_temp(mctp_ext_params ext_params);
+uint8_t pm8702_get_dimm_temp(mctp_ext_params ext_params);
 
 // struct cci_health_info_op_pl{
 // 	uint32_t health_status;

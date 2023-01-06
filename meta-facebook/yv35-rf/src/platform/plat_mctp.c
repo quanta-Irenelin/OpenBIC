@@ -39,7 +39,7 @@
 LOG_MODULE_REGISTER(plat_mctp);
 K_TIMER_DEFINE(send_cmd_timer, send_cmd_to_dev, NULL);
 K_WORK_DEFINE(send_cmd_work, send_cmd_to_dev_handler);
-
+static mctp *cci_mctp_init;
 
 static mctp_smbus_port smbus_port[] = {
 	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL},
@@ -169,13 +169,11 @@ void send_cmd_to_dev(struct k_timer *timer)
 	k_work_submit(&send_cmd_work);
 }
 
-static mctp *cci_mctp_init;
-
 void plat_mctp_init()
 {
 	LOG_INF("plat_mctp_init");
 
-/* init the mctp/pldm instance */
+	/* init the mctp/cci instance */
 	mctp_smbus_port *p = smbus_port;
 	LOG_DBG("bus = %x, addr = %x", p->conf.smbus_conf.bus, p->conf.smbus_conf.addr);
 
@@ -196,8 +194,9 @@ void plat_mctp_init()
 	mctp_start(p->mctp_inst);
 	cci_mctp_init = p->mctp_inst;
 	/* Only send command to device when DC on */
-	k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
-
+	if(gpio_get(FM_POWER_EN) == POWER_ON){
+		k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
+	}
 }
 
 mctp *get_mctp_init()
@@ -226,15 +225,14 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 
 static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
 {
-	// cci_platform_read(CCI_I2C_OFFSET_READ, receiver_info->ext_params);
-	cci_get_dimm_temp(receiver_info->ext_params);
+	pm8702_get_dimm_temp(receiver_info->ext_params);
 	return 0;
 }
 
 static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
-{
-	// get_cxl_temp();
-	int dev_temp = cci_get_temp(receiver_info->ext_params);
+{	
+	mctp *mctp_inst = get_mctp_init();
+	int dev_temp = cci_get_chip_temp(mctp_inst, receiver_info->ext_params);
 	printk("device temp : %d\n", dev_temp);
 	return 0;
 }
