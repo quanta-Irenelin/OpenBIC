@@ -135,7 +135,7 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	mctp *mctp_inst = (mctp *)mctp_p;
 
 	if (!msg->msg_body.cci_msg_req_resp) {
-		msg->msg_body.msg_tag = mctp_inst->pldm_inst_id++;
+		msg->msg_body.msg_tag = mctp_inst->cci_msg_tag++;
 		msg->hdr.msg_type = MCTP_MSG_TYPE_CCI;
 		msg->ext_params.tag_owner = 1;
 	}
