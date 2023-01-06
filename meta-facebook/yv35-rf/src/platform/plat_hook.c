@@ -52,6 +52,28 @@ cci_receiver_info receiver_info[] =
 			},
 };
 
+cci_dimm_info dimm_info[] =
+{	
+	[0] = {	
+			.dimm_data.addr_size = addr_size_7_BIT,
+			.dimm_data.address = 0x0019, //dimm temp register /*Refer to JEDEC SPD*/
+			.dimm_data.offset_size = offset_size_8_BIT,
+			.dimm_data.offset = 0x0005,  //dimm temp register address
+			.dimm_data.timeout_offset = 1,
+			.dimm_data.read_bytes = 2,
+			.dimm_data.timeout_ms = 1,
+			},
+	[1] = {	
+			.dimm_data.addr_size = addr_size_7_BIT,
+			.dimm_data.address = 0x001B,
+			.dimm_data.offset_size = offset_size_8_BIT,
+			.dimm_data.offset = 0x0005,
+			.dimm_data.timeout_offset = 1,
+			.dimm_data.read_bytes = 2,
+			.dimm_data.timeout_ms = 1,
+			},
+};
+
 /**************************************************************************************************
  *  PRE-HOOK/POST-HOOK ARGS
  **************************************************************************************************/

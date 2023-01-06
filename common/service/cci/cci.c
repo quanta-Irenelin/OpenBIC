@@ -128,8 +128,8 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 {
-	CHECK_NULL_ARG_WITH_RETURN(mctp_p, MCTP_ERROR);
-	CHECK_NULL_ARG_WITH_RETURN(msg, MCTP_ERROR);
+	CHECK_NULL_ARG_WITH_RETURN(mctp_p, CCI_ERROR);
+	CHECK_NULL_ARG_WITH_RETURN(msg, CCI_ERROR);
 
 	mctp *mctp_inst = (mctp *)mctp_p;
 
@@ -150,15 +150,15 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 
 	uint8_t rc = mctp_send_msg(mctp_inst, buf, len, msg->ext_params);
 
-	if (rc == MCTP_ERROR) {
+	if (rc == CCI_ERROR) {
 		LOG_WRN("mctp_send_msg error!!");
-		return MCTP_ERROR;
+		return CCI_ERROR;
 	}
 	if (!msg->hdr.cci_msg_req_resp) {
 		wait_msg *p = (wait_msg *)malloc(sizeof(*p));
 		if (!p) {
 			LOG_WRN("wait_msg alloc failed!");
-			return MCTP_ERROR;
+			return CCI_ERROR;
 		}
 
 		memset(p, 0, sizeof(*p));
@@ -172,7 +172,7 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 		k_mutex_unlock(&wait_recv_resp_mutex);
 	}
 
-	return MCTP_SUCCESS;
+	return CCI_SUCCESS;
 }
 
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)

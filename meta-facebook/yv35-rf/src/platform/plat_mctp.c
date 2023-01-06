@@ -218,8 +218,14 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 }
 
 static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
-{
-	pm8702_get_dimm_temp(receiver_info->ext_params);
+{	
+	mctp *mctp_inst = get_mctp_init();
+	uint8_t *temp = (uint8_t *)malloc(2);
+
+	pm8702_get_dimm_temp(mctp_inst, receiver_info[0].ext_params, dimm_info[0].dimm_data, &temp);
+	printk("dimm temp B: %02d.%02d\n",temp[0], temp[1]);
+	pm8702_get_dimm_temp(mctp_inst, receiver_info[0].ext_params, dimm_info[1].dimm_data, &temp);
+	printk("dimm temp D: %02d.%02d\n",temp[0], temp[1]);
 	return 0;
 }
 

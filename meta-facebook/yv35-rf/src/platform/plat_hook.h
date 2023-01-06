@@ -19,6 +19,7 @@
 #include "cci.h"
 #include "mctp.h"
 #include "plat_mctp.h"
+#include "pm8702.h"
 
 typedef struct _isl69254iraz_t_pre_arg_ {
 	uint8_t vr_page;
@@ -37,8 +38,8 @@ typedef struct _cci_receiver_info {
 } cci_receiver_info;
 
 typedef struct _dimm_info {
-	uint8_t data[20];
-} dimm_info;
+	i2c_offset_read_req dimm_data;
+} cci_dimm_info;
 
 /**************************************************************************************************
  * INIT ARGS
@@ -48,6 +49,8 @@ extern ina230_init_arg SQ5220x_init_args[];
 extern ina233_init_arg ina233_init_args[];
 extern vr_pre_proc_arg vr_page_select[];
 extern cci_receiver_info receiver_info[];
+extern cci_dimm_info dimm_info[];
+
 /**************************************************************************************************
  *  PRE-HOOK/POST-HOOK ARGS
  **************************************************************************************************/
