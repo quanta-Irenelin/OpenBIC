@@ -46,9 +46,6 @@ typedef struct _cci_recv_resp_arg {
 typedef struct __attribute__((packed)) {
 	uint8_t msg_type : 7;
 	uint8_t ic : 1;
-} mctp_cci_hdr;
-
-typedef struct __attribute__((packed)){
 	uint8_t cci_msg_req_resp; /* 0h = Request, 1h = Response*/
 	uint8_t msg_tag;
 	uint8_t cci_rsv;
@@ -58,16 +55,10 @@ typedef struct __attribute__((packed)){
 	uint8_t BO : 1;
 	uint16_t ret;
 	uint16_t stat;
-} cci_msg_body;
+} mctp_cci_hdr;
 
 typedef struct {
 	mctp_cci_hdr hdr;
-	cci_msg_body msg_body;
-} mctp_cci_pkt_payload;
-
-typedef struct {
-	mctp_cci_hdr hdr;
-	cci_msg_body msg_body;
 	uint8_t *pl_data;
 	mctp_ext_params ext_params;
 	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
@@ -116,7 +107,7 @@ bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen);
 void health_info_handler(uint8_t *buf, uint16_t len);
 int get_cxl_temp();
-uint16_t cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params);
+bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp);
 
 
 /* send CCI command message through mctp */

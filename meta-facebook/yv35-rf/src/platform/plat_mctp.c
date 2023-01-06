@@ -232,8 +232,9 @@ static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
 static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
 {	
 	mctp *mctp_inst = get_mctp_init();
-	int dev_temp = cci_get_chip_temp(mctp_inst, receiver_info->ext_params);
-	printk("device temp : %d\n", dev_temp);
+	int16_t cxl_temp =0;
+	cci_get_chip_temp(mctp_inst, receiver_info[0].ext_params, &cxl_temp);
+	printk("device temp : %d\n", cxl_temp);
 	return 0;
 }
 
