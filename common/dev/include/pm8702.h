@@ -54,6 +54,6 @@ typedef struct {
 	uint8_t fraction;
 } temp;
 
-bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, i2c_offset_read_req pl_data, uint8_t **temp);
+bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, i2c_offset_read_req pl_data, uint8_t *interger, uint8_t *fraction);
 
 #endif
