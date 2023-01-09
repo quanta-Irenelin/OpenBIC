@@ -41,13 +41,12 @@ K_TIMER_DEFINE(send_cmd_timer, send_cmd_to_dev, NULL);
 K_WORK_DEFINE(send_cmd_work, send_cmd_to_dev_handler);
 static mctp *cci_mctp_init;
 
-static mctp_smbus_port smbus_port[] = {
+mctp_smbus_port smbus_port[] = {
 	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL },
 };
 
-static mctp_route_entry mctp_route_tbl[] = {
+mctp_route_entry mctp_route_tbl[] = {
 	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL0 },
-	// { MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL1 },
 };
 
 mctp *find_mctp_by_smbus(uint8_t bus)
@@ -79,10 +78,10 @@ static void set_dev_endpoint(void)
 {
 	for (uint8_t i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
 		mctp_route_entry *p = mctp_route_tbl + i;
-
-		if (p->bus != smbus_port[0].conf.smbus_conf.bus) {
-			continue;
-		}
+		for (uint8_t j = 0; j < ARRAY_SIZE(smbus_port); j++) {
+			if (p->bus != smbus_port[j].conf.smbus_conf.bus) {
+				continue;
+			}
 		printk("Prepare send endpoint bus 0x%x, addr 0x%x\n", p->bus, p->addr);
 		struct _set_eid_req req = { 0 };
 		req.op = SET_EID_REQ_OP_SET_EID;
@@ -104,6 +103,7 @@ static void set_dev_endpoint(void)
 		msg.timeout_cb_fn_args = p;
 
 		mctp_ctrl_send_msg(find_mctp_by_smbus(p->bus), &msg);
+		}
 	}
 }
 
@@ -135,7 +135,9 @@ static uint8_t mctp_msg_recv(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 }
 
 uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst, mctp_ext_params *ext_params)
-{
+{	
+	printk("_____EID: 0x%02x_______\n",dest_endpoint);
+
 	if (!mctp_inst || !ext_params)
 		return MCTP_ERROR;
 
@@ -144,6 +146,7 @@ uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst, mctp_ext_pa
 
 	for (i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
 		mctp_route_entry *p = mctp_route_tbl + i;
+		printk("_____EID: 0x%02x_______\n",dest_endpoint);
 		if (p->endpoint == dest_endpoint) {
 			if (gpio_get(p->dev_present_pin))
 				return MCTP_ERROR;
@@ -170,9 +173,10 @@ void send_cmd_to_dev(struct k_timer *timer)
 void plat_mctp_init()
 {
 	LOG_INF("plat_mctp_init");
-
+	for (uint8_t i = 0; i < ARRAY_SIZE(smbus_port); i++) {
+		mctp_smbus_port *p = smbus_port + i;
 	/* init the mctp/cci instance */
-	mctp_smbus_port *p = smbus_port;
+	// mctp_smbus_port *p = smbus_port;
 	LOG_DBG("bus = %x, addr = %x", p->conf.smbus_conf.bus, p->conf.smbus_conf.addr);
 
 	p->mctp_inst = mctp_init();
@@ -189,10 +193,12 @@ void plat_mctp_init()
 
 	mctp_start(p->mctp_inst);
 	cci_mctp_init = p->mctp_inst;
+	}
 	/* Only send command to device when DC on */
 	if (gpio_get(FM_POWER_EN) == POWER_ON) {
 		k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
 	}
+	
 }
 
 mctp *get_mctp_init()

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#include <zephyr.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "sensor.h"
@@ -20,17 +22,14 @@
 #include "cci.h"
 #include "mctp.h"
 #include <logging/log.h>
-#include "plat_mctp.h"
-#include "plat_hook.h"
 #include "pm8702.h"
+
 
 LOG_MODULE_REGISTER(pm8702);
 
 
 bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, i2c_offset_read_req pl_data, uint8_t *interger, uint8_t *fraction)
 {
-	mctp *mctp_init = get_mctp_init();
-
 	mctp_cci_msg msg = { 0 };
 	memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
 
@@ -45,7 +44,7 @@ bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, i2c_offset_r
 	memcpy(msg.pl_data, &pl_data, I2C_OFFSET_READ_REQ_PL_LEN);
 	
 	uint8_t rbuf[I2C_OFFSET_READ_RESP_PL_LEN];
-	mctp_cci_read(mctp_init, &msg, rbuf, I2C_OFFSET_READ_RESP_PL_LEN);
+	mctp_cci_read(mctp_p, &msg, rbuf, I2C_OFFSET_READ_RESP_PL_LEN);
 
 	LOG_HEXDUMP_INF(rbuf, I2C_OFFSET_READ_RESP_PL_LEN, __func__);
 	*interger = (rbuf[0] << 4) | (rbuf[1] >> 4);
@@ -58,32 +57,42 @@ bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, i2c_offset_r
 
 uint8_t pm8702_tmp_read(uint8_t sensor_num, int *reading)
 {	
-	uint8_t offset = sensor_config[sensor_config_index_map[sensor_num]].offset;
-	printk("sensor num 0x%02x, offset: %02x",sensor_num, offset);
 	if (!reading || (sensor_num > SENSOR_NUM_MAX)) {
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
-	mctp *mctp_inst = get_mctp_init();
+	uint8_t port = sensor_config[sensor_config_index_map[sensor_num]].port;
+	uint8_t offset = sensor_config[sensor_config_index_map[sensor_num]].offset;
 
+	mctp *mctp_inst = { 0 };
+	
+	if(get_mctp_inst_by_eid(port, &mctp_inst) == false){
+		return SENSOR_UNSPECIFIED_ERROR;
+	}
 
 	if(offset == 0x01){
+		cci_receiver_info *init_args;
+		init_args = (cci_receiver_info *)sensor_config[sensor_config_index_map[sensor_num]].init_args;
+
 		int16_t cxl_temp = 0;
-		if (cci_get_chip_temp(mctp_inst, receiver_info->ext_params, &cxl_temp) == false) {
+		if (cci_get_chip_temp(mctp_inst, init_args->ext_params, &cxl_temp) == false) {
 			return SENSOR_NOT_PRESENT;
 		}
 		printk("device temp : %d\n", cxl_temp);
 		sensor_val *sval = (sensor_val *)reading;
 		sval->integer = cxl_temp;
 		sval->fraction = 0;
-	}
-	if(offset == 0x05){
+		
+	}else if(offset == 0x05){
+		cci_dimm_info *init_args;
+		init_args = (cci_dimm_info *)sensor_config[sensor_config_index_map[sensor_num]].init_args;
 		uint8_t interger = 0;
 		uint8_t fraction = 0;
-		pm8702_get_dimm_temp(mctp_inst, receiver_info->ext_params, dimm_info[0].dimm_data, &interger, &fraction);
+		pm8702_get_dimm_temp(mctp_inst, init_args->ext_params,init_args->dimm_data, &interger, &fraction);
 		sensor_val *sval = (sensor_val *)reading;
 		sval->integer = interger;
 		sval->fraction = fraction;
 	}
+
 	return SENSOR_READ_SUCCESS;
 }
 

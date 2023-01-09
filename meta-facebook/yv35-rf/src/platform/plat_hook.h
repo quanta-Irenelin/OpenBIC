@@ -18,7 +18,6 @@
 #define PLAT_HOOK_H
 #include "cci.h"
 #include "mctp.h"
-#include "plat_mctp.h"
 #include "pm8702.h"
 
 typedef struct _isl69254iraz_t_pre_arg_ {
@@ -29,17 +28,6 @@ typedef struct _vr_pre_proc_arg {
 	/* vr page to set */
 	uint8_t vr_page;
 } vr_pre_proc_arg;
-
-typedef struct _cci_receiver_info {
-	uint16_t CCI_CMD;
-	uint16_t CCI_CMD_RESP_PL_LEN;
-	mctp_ext_params ext_params;
-	uint8_t receiver_bus;
-} cci_receiver_info;
-
-typedef struct _dimm_info {
-	i2c_offset_read_req dimm_data;
-} cci_dimm_info;
 
 /**************************************************************************************************
  * INIT ARGS

@@ -46,10 +46,15 @@ typedef struct _mctp_route_entry {
 	uint8_t dev_present_pin;
 } mctp_route_entry;
 
+extern mctp_smbus_port smbus_port[1];
+extern mctp_route_entry mctp_route_tbl[1];
+
 typedef struct _mctp_msg_handler {
 	MCTP_MSG_TYPE type;
 	mctp_fn_cb msg_handler_cb;
 } mctp_msg_handler;
+
+
 
 /* init the mctp moduel for platform */
 void send_cmd_to_dev(struct k_timer *timer);

@@ -38,23 +38,15 @@ ina233_init_arg ina233_init_args[] = {
 
 cci_receiver_info receiver_info[] =
 {	
-	[0] = {	
-			.CCI_CMD = CCI_GET_HEALTH_INFO,
-			.CCI_CMD_RESP_PL_LEN = HEALTH_INFO_RESP_PL_LEN,
-			.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
-			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
-			},
-	[1] = {	
-			.CCI_CMD = CCI_GET_HEALTH_INFO,
-			.CCI_CMD_RESP_PL_LEN = HEALTH_INFO_RESP_PL_LEN,
-			.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
+	[0] = {	.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
 			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
 			},
 };
 
 cci_dimm_info dimm_info[] =
 {	
-	[0] = {	
+	[0] = {	.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
+			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
 			.dimm_data.addr_size = addr_size_7_BIT,
 			.dimm_data.address = 0x0019, //dimm temp register /*Refer to JEDEC SPD*/
 			.dimm_data.offset_size = offset_size_8_BIT,
@@ -63,7 +55,8 @@ cci_dimm_info dimm_info[] =
 			.dimm_data.read_bytes = 2,
 			.dimm_data.timeout_ms = 1,
 			},
-	[1] = {	
+	[1] = {	.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
+			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
 			.dimm_data.addr_size = addr_size_7_BIT,
 			.dimm_data.address = 0x001B,
 			.dimm_data.offset_size = offset_size_8_BIT,
