@@ -41,12 +41,12 @@ K_TIMER_DEFINE(send_cmd_timer, send_cmd_to_dev, NULL);
 K_WORK_DEFINE(send_cmd_work, send_cmd_to_dev_handler);
 static mctp *cci_mctp_init;
 
-mctp_smbus_port smbus_port[] = {
+static mctp_smbus_port smbus_port[] = {
 	{ .conf.smbus_conf.addr = I2C_ADDR_BIC, .conf.smbus_conf.bus = I2C_BUS_CXL },
 };
 
-mctp_route_entry mctp_route_tbl[] = {
-	{ MCTP_EID_CXL, I2C_BUS_CXL, I2C_ADDR_CXL0 },
+static mctp_route_entry mctp_route_tbl[] = {
+	{ CXL_EID, I2C_BUS_CXL, I2C_ADDR_CXL0 },
 };
 
 mctp *find_mctp_by_smbus(uint8_t bus)
@@ -54,8 +54,10 @@ mctp *find_mctp_by_smbus(uint8_t bus)
 	uint8_t i;
 	for (i = 0; i < ARRAY_SIZE(smbus_port); i++) {
 		mctp_smbus_port *p = smbus_port + i;
-		if (bus == p->conf.smbus_conf.bus)
+		if (bus == p->conf.smbus_conf.bus){
+			printk("success___________");
 			return p->mctp_inst;
+		}
 	}
 	return NULL;
 }
@@ -114,8 +116,6 @@ static uint8_t mctp_msg_recv(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 
 	/* first byte is message type and ic */
 	uint8_t msg_type = (buf[0] & MCTP_MSG_TYPE_MASK) >> MCTP_MSG_TYPE_SHIFT;
-	uint8_t ic = (buf[0] & MCTP_IC_MASK) >> MCTP_IC_SHIFT;
-	(void)ic;
 
 	switch (msg_type) {
 	case MCTP_MSG_TYPE_CTRL:
@@ -136,7 +136,6 @@ static uint8_t mctp_msg_recv(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 
 uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst, mctp_ext_params *ext_params)
 {	
-	printk("_____EID: 0x%02x_______\n",dest_endpoint);
 
 	if (!mctp_inst || !ext_params)
 		return MCTP_ERROR;
@@ -146,10 +145,28 @@ uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst, mctp_ext_pa
 
 	for (i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
 		mctp_route_entry *p = mctp_route_tbl + i;
-		printk("_____EID: 0x%02x_______\n",dest_endpoint);
 		if (p->endpoint == dest_endpoint) {
-			if (gpio_get(p->dev_present_pin))
-				return MCTP_ERROR;
+			*mctp_inst = find_mctp_by_smbus(p->bus);
+			ext_params->type = MCTP_MEDIUM_TYPE_SMBUS;
+			ext_params->smbus_ext_params.addr = p->addr;
+			rc = MCTP_SUCCESS;
+			break;
+		}
+	}
+	return rc;
+}
+
+uint8_t get_mctp_info(uint8_t dest_endpoint, mctp **mctp_inst, mctp_ext_params *ext_params)
+{	
+	if (!mctp_inst || !ext_params){
+		return MCTP_ERROR;
+	}
+	uint8_t rc = MCTP_ERROR;
+	uint32_t i;
+
+	for (i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++) {
+		mctp_route_entry *p = mctp_route_tbl + i;
+		if (p->endpoint == dest_endpoint) {
 			*mctp_inst = find_mctp_by_smbus(p->bus);
 			ext_params->type = MCTP_MEDIUM_TYPE_SMBUS;
 			ext_params->smbus_ext_params.addr = p->addr;
@@ -225,21 +242,21 @@ static int test_pm8702_set_eid(const struct shell *shell, size_t argc, char **ar
 
 static int read_dimm_temp(const struct shell *shell, size_t argc, char **argv)
 {	
-	mctp *mctp_inst = get_mctp_init();
+	// mctp *mctp_inst = get_mctp_init();
 	uint8_t interger = 0;
 	uint8_t fraction = 0;
-	pm8702_get_dimm_temp(mctp_inst, receiver_info[0].ext_params, dimm_info[0].dimm_data, &interger, &fraction);
+	// pm8702_get_dimm_temp(mctp_inst, receiver_info[0].ext_params, dimm_info[0].dimm_data, &interger, &fraction);
 	printk("dimm temp B: %02d.%02d\n",interger, fraction);
-	pm8702_get_dimm_temp(mctp_inst, receiver_info[0].ext_params, dimm_info[1].dimm_data, &interger, &fraction);
+	// pm8702_get_dimm_temp(mctp_inst, receiver_info[0].ext_params, dimm_info[1].dimm_data, &interger, &fraction);
 	printk("dimm temp D: %02d.%02d\n",interger, fraction);
 	return 0;
 }
 
 static int read_cxl_temp(const struct shell *shell, size_t argc, char **argv)
 {
-	mctp *mctp_inst = get_mctp_init();
+	// mctp *mctp_inst = get_mctp_init();
 	int16_t cxl_temp = 0;
-	cci_get_chip_temp(mctp_inst, receiver_info[0].ext_params, &cxl_temp);
+	// cci_get_chip_temp(mctp_inst, receiver_info[0].ext_params, &cxl_temp);
 	printk("device temp : %d\n", cxl_temp);
 	return 0;
 }

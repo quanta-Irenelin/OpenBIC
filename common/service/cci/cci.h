@@ -105,7 +105,6 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen);
 void health_info_handler(uint8_t *buf, uint16_t len);
-int get_cxl_temp();
 bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp);
 
 /* send CCI command message through mctp */

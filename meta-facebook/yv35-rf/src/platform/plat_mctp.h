@@ -30,7 +30,7 @@
 /* i2c dev bus */
 #define I2C_BUS_CXL 0x01
 /* mctp endpoint */
-#define MCTP_EID_CXL 0x2E
+#define CXL_EID 0x2E
 
 typedef struct _mctp_smbus_port {
 	mctp *mctp_inst;
@@ -46,15 +46,10 @@ typedef struct _mctp_route_entry {
 	uint8_t dev_present_pin;
 } mctp_route_entry;
 
-extern mctp_smbus_port smbus_port[1];
-extern mctp_route_entry mctp_route_tbl[1];
-
 typedef struct _mctp_msg_handler {
 	MCTP_MSG_TYPE type;
 	mctp_fn_cb msg_handler_cb;
 } mctp_msg_handler;
-
-
 
 /* init the mctp moduel for platform */
 void send_cmd_to_dev(struct k_timer *timer);
@@ -63,5 +58,7 @@ void plat_mctp_init(void);
 uint8_t get_mctp_route_info(uint8_t dest_endpoint, void **mctp_inst, mctp_ext_params *ext_params);
 mctp *find_mctp_by_smbus(uint8_t bus);
 mctp *get_mctp_init();
+uint8_t get_mctp_info(uint8_t dest_endpoint, mctp **mctp_inst, mctp_ext_params *ext_params);
+
 
 #endif /* _PLAT_MCTP_h */

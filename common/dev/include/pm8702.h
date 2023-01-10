@@ -31,11 +31,14 @@ int get_dimm_temp();
 
 
 /*CCI_I2C_OFFSET_READ parameters */
-#define addr_size_7_BIT  0x00  
-#define addr_size_10_BIT  0x01
+#define ADDR_SIZE_7_BIT  0x00  
+#define ADDR_SIZE_10_BIT  0x01
 
-#define offset_size_8_BIT  0x01  
-#define offset_size_16_BIT  0x02 
+#define OFFSET_SIZE_8_BIT  0x01  
+#define OFFSET_SIZE_16_BIT  0x02 
+
+#define I2C_READ_TIMEOUT_MS  1000 
+#define DIMM_TEMP_REG_OFFSET  0x0005 /*Refer to JEDEC SPD*/
 
 typedef struct {
 	uint8_t addr_size;
@@ -49,21 +52,11 @@ typedef struct {
     uint32_t timeout_ms;
 } i2c_offset_read_req;
 
-typedef struct _cci_receiver_info {
-	mctp_ext_params ext_params;
-	uint8_t receiver_bus;
-} cci_receiver_info;
+typedef enum _pm8702_access {
+	chip_temp = 0x01,
+	dimm_temp = 0x05,
+} pm8702_access;
 
-typedef struct _dimm_info {
-	mctp_ext_params ext_params;
-	i2c_offset_read_req dimm_data;
-} cci_dimm_info;
-
-typedef struct {
-	uint8_t interger;
-	uint8_t fraction;
-} temp;
-
-bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, i2c_offset_read_req pl_data, uint8_t *interger, uint8_t *fraction);
+bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t reg_addr, int16_t *interger, int16_t *fraction);
 
 #endif

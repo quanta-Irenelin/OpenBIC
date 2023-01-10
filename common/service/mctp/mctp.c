@@ -592,19 +592,13 @@ uint8_t mctp_reg_msg_rx_func(mctp *mctp_inst, mctp_fn_cb rx_cb)
 	return MCTP_SUCCESS;
 }
 
-bool get_mctp_inst_by_eid(uint8_t port, mctp **mctp_inst)
+
+bool get_mctp_info_by_eid(uint8_t port, mctp **mctp_inst, mctp_ext_params *ext_params)
 {	
-	if (!mctp_inst){
+	if (!mctp_inst || !ext_params){
 		return false;
 	}
-	for(int i = 0; i < ARRAY_SIZE(mctp_route_tbl); i++){
-		if(port == mctp_route_tbl[i].endpoint){
-			mctp_smbus_port *p = smbus_port + i;
-			mctp_reg_endpoint_resolve_func(p->mctp_inst, get_mctp_route_info);
-			*mctp_inst = p->mctp_inst;
-		}
-	}
-	return true;
+	return get_mctp_info(port, &*mctp_inst,ext_params) == MCTP_SUCCESS ? true: false;
 }
 
 

@@ -16,9 +16,6 @@
 
 #ifndef PLAT_HOOK_H
 #define PLAT_HOOK_H
-#include "cci.h"
-#include "mctp.h"
-#include "pm8702.h"
 
 typedef struct _isl69254iraz_t_pre_arg_ {
 	uint8_t vr_page;
@@ -36,8 +33,6 @@ extern adc_asd_init_arg adc_asd_init_args[];
 extern ina230_init_arg SQ5220x_init_args[];
 extern ina233_init_arg ina233_init_args[];
 extern vr_pre_proc_arg vr_page_select[];
-extern cci_receiver_info receiver_info[];
-extern cci_dimm_info dimm_info[];
 
 /**************************************************************************************************
  *  PRE-HOOK/POST-HOOK ARGS
@@ -49,5 +44,4 @@ extern isl69254iraz_t_pre_arg isl69254iraz_t_pre_read_args[];
  **************************************************************************************************/
 bool pre_isl69254iraz_t_read(uint8_t sensor_num, void *args);
 bool pre_vr_read(uint8_t sensor_num, void *args);
-void mctp_cci_set_route_info();
 #endif

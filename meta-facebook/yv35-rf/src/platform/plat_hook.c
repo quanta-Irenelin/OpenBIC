@@ -21,10 +21,6 @@
 #include "hal_i2c.h"
 #include "plat_sensor_table.h"
 #include "plat_hook.h"
-#include "cci.h"
-#include "mctp.h"
-#include "plat_mctp.h"
-#include "pm8702.h"
 
 /**************************************************************************************************
  * INIT ARGS
@@ -34,37 +30,6 @@ adc_asd_init_arg adc_asd_init_args[] = { [0] = { .is_init = false } };
 ina233_init_arg ina233_init_args[] = {
 	[0] = { .is_init = false, .current_lsb = 0.001, .r_shunt = 0.005 },
 	[1] = { .is_init = false, .current_lsb = 0.001, .r_shunt = 0.005 },
-};
-
-cci_receiver_info receiver_info[] =
-{	
-	[0] = {	.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
-			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
-			},
-};
-
-cci_dimm_info dimm_info[] =
-{	
-	[0] = {	.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
-			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
-			.dimm_data.addr_size = addr_size_7_BIT,
-			.dimm_data.address = 0x0019, //dimm temp register /*Refer to JEDEC SPD*/
-			.dimm_data.offset_size = offset_size_8_BIT,
-			.dimm_data.offset = 0x0005,  //dimm temp register address
-			.dimm_data.timeout_offset = 1,
-			.dimm_data.read_bytes = 2,
-			.dimm_data.timeout_ms = 1,
-			},
-	[1] = {	.ext_params.type = MCTP_MEDIUM_TYPE_SMBUS,
-			.ext_params.smbus_ext_params.addr = I2C_ADDR_CXL0,
-			.dimm_data.addr_size = addr_size_7_BIT,
-			.dimm_data.address = 0x001B,
-			.dimm_data.offset_size = offset_size_8_BIT,
-			.dimm_data.offset = 0x0005,
-			.dimm_data.timeout_offset = 1,
-			.dimm_data.read_bytes = 2,
-			.dimm_data.timeout_ms = 1,
-			},
 };
 
 /**************************************************************************************************
