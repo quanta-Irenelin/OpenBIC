@@ -30,7 +30,7 @@ int get_dimm_temp();
 #define I2C_OFFSET_READ_REQ_PL_LEN 20 /*Size Bytes*/
 
 /*CCI (pm8702 vendor CMD) Response paypload length */
-#define I2C_OFFSET_READ_RESP_PL_LEN 2 /*Size Bytes*/
+#define DIMM_TEMP_READ_RESP_PL_LEN 2 /*Size Bytes*/
 
 
 /*CCI_I2C_OFFSET_READ parameters */

@@ -93,7 +93,6 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 	sys_snode_t *s_node;
 	sys_snode_t *pre_node = NULL;
 	sys_snode_t *found_node = NULL;
-	printk("payload length: %02d\n", cci_hdr->pl_len);
 
 	if (k_mutex_lock(&wait_recv_resp_mutex, K_MSEC(RESP_MSG_PROC_MUTEX_WAIT_TO_MS))) {
 		LOG_WRN("mutex is locked over %d ms!", RESP_MSG_PROC_MUTEX_WAIT_TO_MS);
@@ -103,10 +102,8 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 	SYS_SLIST_FOR_EACH_NODE_SAFE (&wait_recv_resp_list, node, s_node) {
 		wait_msg *p = (wait_msg *)node;
 		/* found the proper handler */
-		printk("msg tag: 0x%02x, 0x%02x\n", p->msg.hdr.msg_tag, cci_hdr->msg_tag);
-		printk("op code: 0x%02x, 0x%02x\n", p->msg.hdr.op, cci_hdr->op);
 		if ((p->mctp_inst == mctp_inst) && (p->msg.hdr.msg_tag == cci_hdr->msg_tag) &&
-		    (p->msg.hdr.op == cci_hdr->op) && (p->msg.hdr.ret == cci_hdr->ret)) {
+		    (p->msg.hdr.op == cci_hdr->op) && (cci_hdr->ret == CCI_SUCCESS )) {
 			found_node = node;
 			sys_slist_remove(&wait_recv_resp_list, pre_node, node);
 			break;
@@ -230,7 +227,6 @@ uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg, uint8_t *rbuf, uint16_t 
 			continue;
 		}
 		if (event == CCI_READ_EVENT_SUCCESS) {
-			printk("event: %d\n", event);
 			return recv_arg.return_len;
 		}
 	}

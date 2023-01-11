@@ -24,11 +24,6 @@
 #include <zephyr.h>
 #include "plat_def.h"
 
-#ifdef ENABLE_CCI
-#include "plat_mctp.h"
-#endif
-
-
 LOG_MODULE_REGISTER(mctp);
 
 typedef struct __attribute__((packed)) {
@@ -596,7 +591,11 @@ uint8_t mctp_reg_msg_rx_func(mctp *mctp_inst, mctp_fn_cb rx_cb)
 	return MCTP_SUCCESS;
 }
 
-#ifdef ENABLE_CCI
+__weak uint8_t get_mctp_info(uint8_t dest_endpoint, mctp **mctp_inst, mctp_ext_params *ext_params)
+{
+	return -1;
+}
+
 bool get_mctp_info_by_eid(uint8_t port, mctp **mctp_inst, mctp_ext_params *ext_params)
 {	
 	if (!mctp_inst || !ext_params){
@@ -604,5 +603,6 @@ bool get_mctp_info_by_eid(uint8_t port, mctp **mctp_inst, mctp_ext_params *ext_p
 	}
 	return get_mctp_info(port, mctp_inst,ext_params) == MCTP_SUCCESS ? true: false;
 }
-#endif
+
+
 

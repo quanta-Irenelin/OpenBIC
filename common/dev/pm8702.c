@@ -51,18 +51,18 @@ bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t add
 	req.offset_size = OFFSET_SIZE_8_BIT;
 	req.offset = DIMM_TEMP_REG_OFFSET;  // temperature register offset of the DIMM
 	req.timeout_offset = 1;
-	req.read_bytes = I2C_OFFSET_READ_RESP_PL_LEN;
+	req.read_bytes = DIMM_TEMP_READ_RESP_PL_LEN;
 	req.timeout_ms = I2C_READ_TIMEOUT_MS;
 
 	memcpy(msg.pl_data, &req, sizeof(req));
 	
-	uint8_t rbuf[I2C_OFFSET_READ_RESP_PL_LEN] = { 0 };
-	if(!mctp_cci_read(mctp_p, &msg, rbuf, I2C_OFFSET_READ_RESP_PL_LEN)){
+	uint8_t rbuf[DIMM_TEMP_READ_RESP_PL_LEN] = { 0 };
+	if(!mctp_cci_read(mctp_p, &msg, rbuf, DIMM_TEMP_READ_RESP_PL_LEN)){
 		LOG_ERR("[%s] mctp_cci_read fail", __func__);
 		return false;
 	}
 
-	LOG_HEXDUMP_INF(rbuf, I2C_OFFSET_READ_RESP_PL_LEN, __func__);
+	LOG_HEXDUMP_INF(rbuf, DIMM_TEMP_READ_RESP_PL_LEN, __func__);
 
 	int8_t dimm_int = (rbuf[0] << 4) | (rbuf[1] >> 4);
 	int8_t dimm_frac = 0;

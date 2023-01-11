@@ -216,7 +216,7 @@ uint8_t mctp_i3c_deinit(mctp *mctp_instance);
 /* register endpoint resolve function */
 uint8_t mctp_reg_endpoint_resolve_func(mctp *mctp_inst, endpoint_resolve resolve_fn);
 bool get_mctp_info_by_eid(uint8_t port, mctp **mctp_inst, mctp_ext_params *ext_params);
-
+uint8_t get_mctp_info(uint8_t dest_endpoint, mctp **mctp_inst, mctp_ext_params *ext_params);
 
 /* register callback function when the mctp message is received */
 uint8_t mctp_reg_msg_rx_func(mctp *mctp_inst, mctp_fn_cb rx_cb);
