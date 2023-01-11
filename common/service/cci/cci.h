@@ -61,7 +61,7 @@ typedef struct {
 	mctp_cci_hdr hdr;
 	uint8_t *pl_data;
 	mctp_ext_params ext_params;
-	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t);
+	void (*recv_resp_cb_fn)(void *, uint8_t *, uint16_t, uint16_t);
 	void *recv_resp_cb_args;
 	uint16_t timeout_ms;
 	void (*timeout_cb_fn)(void *);
@@ -80,7 +80,7 @@ typedef struct _mctp_cci_cmd_handler {
 #define CCI_CC_INVALID_INPUT 0x0002
 
 /*
- * CCI Control Completion Codes
+ * CCI Return Codes
  */
 #define CCI_CC_SUCCESS 0x0000
 #define CCI_CC_INVALID_INPUT 0x0002
@@ -103,7 +103,7 @@ typedef struct _wait_msg {
 /*CCI command handler */
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params);
 bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
-void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen);
+void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen, uint16_t ret_code);
 void health_info_handler(uint8_t *buf, uint16_t len);
 bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp);
 

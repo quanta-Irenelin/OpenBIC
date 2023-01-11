@@ -98,12 +98,11 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		LOG_WRN("mutex is locked over %d ms!", RESP_MSG_PROC_MUTEX_WAIT_TO_MS);
 		return MCTP_ERROR;
 	}
-
 	SYS_SLIST_FOR_EACH_NODE_SAFE (&wait_recv_resp_list, node, s_node) {
 		wait_msg *p = (wait_msg *)node;
 		/* found the proper handler */
 		if ((p->mctp_inst == mctp_inst) && (p->msg.hdr.msg_tag == cci_hdr->msg_tag) &&
-		    (p->msg.hdr.op == cci_hdr->op) && (cci_hdr->ret == CCI_SUCCESS )) {
+		    (p->msg.hdr.op == cci_hdr->op)) {
 			found_node = node;
 			sys_slist_remove(&wait_recv_resp_list, pre_node, node);
 			break;
@@ -119,7 +118,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		if (p->msg.recv_resp_cb_fn)
 			p->msg.recv_resp_cb_fn(
 				p->msg.recv_resp_cb_args, buf + sizeof(p->msg.hdr),
-				len - sizeof(p->msg.hdr)); /* remove mctp cci header for handler */
+				len - sizeof(p->msg.hdr), cci_hdr->ret ); /* remove mctp cci header for handler */
 		free(p);
 	}
 
@@ -175,11 +174,11 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg)
 	return CCI_SUCCESS;
 }
 
-void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)
+void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen, uint16_t ret_code)
 {
 	CHECK_NULL_ARG(args);
 	CHECK_NULL_ARG(rbuf);
-
+	uint8_t status = 0;
 	cci_recv_resp_arg *recv_arg = (cci_recv_resp_arg *)args;
 
 	if (rlen > recv_arg->rbuf_len) {
@@ -190,7 +189,11 @@ void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)
 		recv_arg->return_len = rlen;
 	}
 	memcpy(recv_arg->rbuf, rbuf, recv_arg->return_len);
-	uint8_t status = CCI_READ_EVENT_SUCCESS;
+	if(ret_code == CCI_CC_SUCCESS){
+		status = CCI_READ_EVENT_SUCCESS;
+	}else{
+		LOG_ERR("[%s] Return code status(0x%04x)!\n", __func__, ret_code);
+	}
 	k_msgq_put(recv_arg->msgq, &status, K_NO_WAIT);
 }
 
@@ -279,7 +282,7 @@ bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_t
 		return false;
 	}
 
-	LOG_HEXDUMP_INF(rbuf, resp_len, __func__);
+	LOG_HEXDUMP_INF(rbuf, resp_len, "CCI_Get_Health_Info");
 	cci_health_info_resp *resp_p = (cci_health_info_resp *)rbuf;
 	*chip_temp = resp_p->dev_temp;
 

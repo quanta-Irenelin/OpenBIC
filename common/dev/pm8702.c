@@ -95,6 +95,9 @@ uint8_t pm8702_read(uint8_t sensor_num, int *reading)
 	if(get_mctp_info_by_eid(port, &mctp_inst, &ext_params) == false){
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
+	if (!mctp_inst) {
+		return SENSOR_UNSPECIFIED_ERROR;
+	}
 	switch (pm8702_access) {
 		case chip_temp:
 			if(cci_get_chip_temp(mctp_inst, ext_params, &sval->integer) == false){
