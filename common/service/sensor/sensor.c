@@ -92,6 +92,10 @@ const char *const sensor_type_name[] = {
 #ifdef ENABLE_APML
 	sensor_name_to_num(amd_tsi)
 	sensor_name_to_num(apml_mailbox)
+	sensor_name_to_num(pm8702)
+#endif
+#ifdef ENABLE_CCI
+	sensor_name_to_num(pm8702)
 #endif
 	sensor_name_to_num(xdpe19283b)
 	sensor_name_to_num(g788p81u)
@@ -101,8 +105,6 @@ const char *const sensor_type_name[] = {
 	sensor_name_to_num(adm1272)
 	sensor_name_to_num(q50sn120a1)
 	sensor_name_to_num(mp2971)
-	sensor_name_to_num(pm8702)
-
 };
 // clang-format on
 
@@ -132,6 +134,10 @@ SENSOR_DRIVE_INIT_DECLARE(ltc4286);
 #ifdef ENABLE_APML
 SENSOR_DRIVE_INIT_DECLARE(amd_tsi);
 SENSOR_DRIVE_INIT_DECLARE(apml_mailbox);
+SENSOR_DRIVE_INIT_DECLARE(pm8702);
+#endif
+#ifdef ENABLE_CCI
+SENSOR_DRIVE_INIT_DECLARE(pm8702);
 #endif
 SENSOR_DRIVE_INIT_DECLARE(xdpe19283b);
 SENSOR_DRIVE_INIT_DECLARE(g788p81u);
@@ -141,7 +147,6 @@ SENSOR_DRIVE_INIT_DECLARE(ddr5_temp);
 SENSOR_DRIVE_INIT_DECLARE(adm1272);
 SENSOR_DRIVE_INIT_DECLARE(q50sn120a1);
 SENSOR_DRIVE_INIT_DECLARE(mp2971);
-SENSOR_DRIVE_INIT_DECLARE(pm8702);
 
 struct sensor_drive_api {
 	enum SENSOR_DEV dev;
@@ -174,6 +179,9 @@ struct sensor_drive_api {
 	SENSOR_DRIVE_TYPE_INIT_MAP(amd_tsi),
 	SENSOR_DRIVE_TYPE_INIT_MAP(apml_mailbox),
 #endif
+#ifdef ENABLE_CCI
+	SENSOR_DRIVE_TYPE_INIT_MAP(pm8702),
+#endif
 	SENSOR_DRIVE_TYPE_INIT_MAP(xdpe19283b),
 	SENSOR_DRIVE_TYPE_INIT_MAP(g788p81u),
 	SENSOR_DRIVE_TYPE_INIT_MAP(mp2856gut),
@@ -182,7 +190,6 @@ struct sensor_drive_api {
 	SENSOR_DRIVE_TYPE_INIT_MAP(adm1272),
 	SENSOR_DRIVE_TYPE_INIT_MAP(q50sn120a1),
 	SENSOR_DRIVE_TYPE_INIT_MAP(mp2971),
-	SENSOR_DRIVE_TYPE_INIT_MAP(pm8702),
 };
 
 static void init_sensor_num(void)

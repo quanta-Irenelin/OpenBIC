@@ -16,6 +16,9 @@
 
 #ifndef PM8702_H
 #define PM8702_H
+#include "plat_def.h"
+
+#ifdef ENABLE_CCI
 
 void dimm_temp_handler(uint8_t *buf, uint16_t len);
 int get_dimm_temp();
@@ -53,10 +56,12 @@ typedef struct {
 } i2c_offset_read_req;
 
 typedef enum _pm8702_access {
-	chip_temp = 0x01,
-	dimm_temp = 0x05,
+	chip_temp,
+	dimm_temp,
 } pm8702_access;
 
-bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t reg_addr, int16_t *interger, int16_t *fraction);
+bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t address, int16_t *interger, int16_t *fraction);
+#endif
+
 
 #endif

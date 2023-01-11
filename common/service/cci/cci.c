@@ -8,8 +8,6 @@
 #include <sys/slist.h>
 #include <zephyr.h>
 #include "sensor.h"
-#include "plat_mctp.h"
-#include "plat_hook.h"
 
 LOG_MODULE_REGISTER(cci);
 
@@ -73,11 +71,16 @@ static void mctp_cci_msg_timeout_monitor(void *dummy0, void *dummy1, void *dummy
 	}
 }
 
-static void mctp_cci_resp_timeout(void *args)
+static void cci_read_timeout_handler(void *args)
 {
-	mctp_route_entry *p = (mctp_route_entry *)args;
-	printk("[%s]  send cci failed on endpoint 0x%x, bus %d \n", __func__, p->endpoint, p->bus);
+	if (!args) {
+		return;
+	}
+	struct k_msgq *msgq = (struct k_msgq *)args;
+	uint8_t status = CCI_READ_EVENT_TIMEOUT;
+	k_msgq_put(msgq, &status, K_NO_WAIT);
 }
+
 
 static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t len,
 					 mctp_ext_params ext_params)
@@ -103,7 +106,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 		printk("msg tag: 0x%02x, 0x%02x\n", p->msg.hdr.msg_tag, cci_hdr->msg_tag);
 		printk("op code: 0x%02x, 0x%02x\n", p->msg.hdr.op, cci_hdr->op);
 		if ((p->mctp_inst == mctp_inst) && (p->msg.hdr.msg_tag == cci_hdr->msg_tag) &&
-		    (p->msg.hdr.op == cci_hdr->op)) {
+		    (p->msg.hdr.op == cci_hdr->op) && (p->msg.hdr.ret == cci_hdr->ret)) {
 			found_node = node;
 			sys_slist_remove(&wait_recv_resp_list, pre_node, node);
 			break;
@@ -195,7 +198,8 @@ void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen)
 }
 
 uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg, uint8_t *rbuf, uint16_t rbuf_len)
-{
+{	
+	CHECK_NULL_ARG_WITH_RETURN(mctp_p, 0);
 	CHECK_NULL_ARG_WITH_RETURN(msg, 0);
 	CHECK_NULL_ARG_WITH_RETURN(rbuf, 0);
 
@@ -211,7 +215,7 @@ uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg, uint8_t *rbuf, uint16_t 
 
 	msg->recv_resp_cb_fn = cci_read_resp_handler;
 	msg->recv_resp_cb_args = (void *)&recv_arg;
-	msg->timeout_cb_fn = mctp_cci_resp_timeout;
+	msg->timeout_cb_fn = cci_read_timeout_handler;
 	msg->timeout_cb_fn_args = (void *)&event_msgq;
 	msg->timeout_ms = CCI_MSG_TIMEOUT_MS;
 
@@ -226,6 +230,7 @@ uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg, uint8_t *rbuf, uint16_t 
 			continue;
 		}
 		if (event == CCI_READ_EVENT_SUCCESS) {
+			printk("event: %d\n", event);
 			return recv_arg.return_len;
 		}
 	}
@@ -274,7 +279,7 @@ bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_t
 	uint8_t rbuf[resp_len];
 
 	if (!mctp_cci_read(mctp_p, &msg, rbuf, resp_len)) {
-		LOG_ERR("[%s] mctp_pldm_read fail", __func__);
+		LOG_ERR("[%s] mctp_cci_read fail", __func__);
 		return false;
 	}
 

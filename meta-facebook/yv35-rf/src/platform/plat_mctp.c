@@ -55,7 +55,6 @@ mctp *find_mctp_by_smbus(uint8_t bus)
 	for (i = 0; i < ARRAY_SIZE(smbus_port); i++) {
 		mctp_smbus_port *p = smbus_port + i;
 		if (bus == p->conf.smbus_conf.bus){
-			printk("success___________");
 			return p->mctp_inst;
 		}
 	}
