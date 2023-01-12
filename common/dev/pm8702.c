@@ -43,6 +43,7 @@ bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t add
 	msg.pl_data = (uint8_t *)malloc(sizeof(req));
 	if (msg.pl_data == NULL) {
 		LOG_ERR("Failed to allocate payload data.");
+		free(msg.pl_data);
 		return false;
 	}
 
@@ -59,6 +60,7 @@ bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t add
 	uint8_t rbuf[DIMM_TEMP_READ_RESP_PL_LEN] = { 0 };
 	if(!mctp_cci_read(mctp_p, &msg, rbuf, DIMM_TEMP_READ_RESP_PL_LEN)){
 		LOG_ERR("[%s] mctp_cci_read fail", __func__);
+		free(msg.pl_data);
 		return false;
 	}
 
