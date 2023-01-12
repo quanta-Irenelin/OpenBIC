@@ -18,10 +18,7 @@
 #define PM8702_H
 #include "plat_def.h"
 
-#ifdef ENABLE_CCI
-
-void dimm_temp_handler(uint8_t *buf, uint16_t len);
-int get_dimm_temp();
+#ifdef ENABLE_PM8702
 
 /*CCI (pm8702 vendor CMD) */
 #define CCI_I2C_OFFSET_READ 0xc401
@@ -43,7 +40,7 @@ int get_dimm_temp();
 #define I2C_READ_TIMEOUT_MS  1000 
 #define DIMM_TEMP_REG_OFFSET  0x0005 /*Refer to JEDEC SPD*/
 
-typedef struct {
+typedef struct __attribute__((__packed__)){
 	uint8_t addr_size;
 	uint8_t rsvd_0;
 	uint16_t address;

@@ -102,9 +102,7 @@ typedef struct _wait_msg {
 
 /*CCI command handler */
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params);
-bool post_cxl_temp_read(uint8_t sensor_num, void *args, int *reading);
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen, uint16_t ret_code);
-void health_info_handler(uint8_t *buf, uint16_t len);
 bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp);
 
 /* send CCI command message through mctp */
@@ -112,7 +110,7 @@ uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg);
 
 uint16_t mctp_cci_read(void *mctp_p, mctp_cci_msg *msg, uint8_t *rbuf, uint16_t rbuf_len);
 
-typedef struct {
+typedef struct __attribute__((__packed__)){
 	uint8_t health_status;
 	uint8_t media_status;
 	uint8_t additional_status;

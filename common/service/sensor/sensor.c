@@ -92,9 +92,8 @@ const char *const sensor_type_name[] = {
 #ifdef ENABLE_APML
 	sensor_name_to_num(amd_tsi)
 	sensor_name_to_num(apml_mailbox)
-	sensor_name_to_num(pm8702)
 #endif
-#ifdef ENABLE_CCI
+#ifdef ENABLE_PM8702
 	sensor_name_to_num(pm8702)
 #endif
 	sensor_name_to_num(xdpe19283b)
@@ -134,9 +133,8 @@ SENSOR_DRIVE_INIT_DECLARE(ltc4286);
 #ifdef ENABLE_APML
 SENSOR_DRIVE_INIT_DECLARE(amd_tsi);
 SENSOR_DRIVE_INIT_DECLARE(apml_mailbox);
-SENSOR_DRIVE_INIT_DECLARE(pm8702);
 #endif
-#ifdef ENABLE_CCI
+#ifdef ENABLE_PM8702
 SENSOR_DRIVE_INIT_DECLARE(pm8702);
 #endif
 SENSOR_DRIVE_INIT_DECLARE(xdpe19283b);
@@ -179,7 +177,7 @@ struct sensor_drive_api {
 	SENSOR_DRIVE_TYPE_INIT_MAP(amd_tsi),
 	SENSOR_DRIVE_TYPE_INIT_MAP(apml_mailbox),
 #endif
-#ifdef ENABLE_CCI
+#ifdef ENABLE_PM8702
 	SENSOR_DRIVE_TYPE_INIT_MAP(pm8702),
 #endif
 	SENSOR_DRIVE_TYPE_INIT_MAP(xdpe19283b),

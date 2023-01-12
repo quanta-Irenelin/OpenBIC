@@ -7,6 +7,7 @@
 #include <sys/printk.h>
 #include <sys/slist.h>
 #include <zephyr.h>
+#include "libutil.h"
 #include "sensor.h"
 
 LOG_MODULE_REGISTER(cci);
@@ -48,7 +49,7 @@ static uint8_t mctp_cci_msg_timeout_check(sys_slist_t *list, struct k_mutex *mut
 			if (p->msg.timeout_cb_fn)
 				p->msg.timeout_cb_fn(p->msg.timeout_cb_fn_args);
 
-			free(p);
+			SAFE_FREE(p);
 		} else {
 			pre_node = node;
 		}
@@ -73,9 +74,7 @@ static void mctp_cci_msg_timeout_monitor(void *dummy0, void *dummy1, void *dummy
 
 static void cci_read_timeout_handler(void *args)
 {
-	if (!args) {
-		return;
-	}
+	CHECK_NULL_ARG(args);
 	struct k_msgq *msgq = (struct k_msgq *)args;
 	uint8_t status = CCI_READ_EVENT_TIMEOUT;
 	k_msgq_put(msgq, &status, K_NO_WAIT);
@@ -119,7 +118,7 @@ static uint8_t mctp_cci_cmd_resp_process(mctp *mctp_inst, uint8_t *buf, uint32_t
 			p->msg.recv_resp_cb_fn(
 				p->msg.recv_resp_cb_args, buf + sizeof(p->msg.hdr),
 				len - sizeof(p->msg.hdr), cci_hdr->ret ); /* remove mctp cci header for handler */
-		free(p);
+		SAFE_FREE(p);
 	}
 
 	return MCTP_SUCCESS;
@@ -264,9 +263,9 @@ uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_
 
 bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp)
 {
-	if (!mctp_p || !chip_temp) {
-		return false;
-	}
+
+	CHECK_NULL_ARG_WITH_RETURN(mctp_p, false);
+	CHECK_NULL_ARG_WITH_RETURN(chip_temp, false);
 
 	mctp_cci_msg msg = { 0 };
 	memcpy(&msg.ext_params, &ext_params, sizeof(msg.ext_params));
@@ -277,7 +276,7 @@ bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_t
 	int resp_len = sizeof(cci_health_info_resp);
 	uint8_t rbuf[resp_len];
 
-	if (!mctp_cci_read(mctp_p, &msg, rbuf, resp_len)) {
+	if (mctp_cci_read(mctp_p, &msg, rbuf, resp_len) != resp_len) {
 		LOG_ERR("[%s] mctp_cci_read fail", __func__);
 		return false;
 	}
