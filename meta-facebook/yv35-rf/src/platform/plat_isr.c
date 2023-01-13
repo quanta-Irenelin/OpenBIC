@@ -232,8 +232,30 @@ static void add_vr_pmalert_sel(uint8_t gpio_num, uint8_t vr_addr, uint8_t vr_num
 			continue;
 		}
 
-		common_addsel_msg_t sel_msg = { 0 };
+		if (msg.data[1] == 0b00010000) { /*exceptional case: MFR_SPECIFIC occurred*/
+			msg.tx_len = 1;
+			msg.rx_len = 1;
+			memset(&msg.data, 0, sizeof(I2C_BUFF_SIZE));
+			msg.data[0] = PMBUS_STATUS_MFR_SPECIFIC;
+			if (i2c_master_read(&msg, I2C_RETRY)) {
+				printf("[%s] Failed to read PMBUS_STATUS_WORD.\n", __func__);
+				continue;
+			}
+			if (msg.data[0] ==
+			    0b10001000) { /*exceptional case: ADCUNLOCK and BBEVENT occurred*/
+				msg.tx_len = 1;
+				memset(&msg.data, 0, sizeof(I2C_BUFF_SIZE));
+				msg.data[0] = PMBUS_CLEAR_FAULTS;
+				if (i2c_master_write(&msg, I2C_RETRY)) {
+					printf("[%s] Failed to read PMBUS_STATUS_WORD.\n",
+					       __func__);
+					continue;
+				}
+				continue;
+			}
+		}
 
+		common_addsel_msg_t sel_msg = { 0 };
 		if (gpio_get(gpio_num) == GPIO_HIGH) {
 			sel_msg.event_type = IPMI_OEM_EVENT_TYPE_DEASSERT;
 		} else {
