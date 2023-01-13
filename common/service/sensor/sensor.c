@@ -99,6 +99,7 @@ const char *const sensor_type_name[] = {
 	sensor_name_to_num(adm1272)
 	sensor_name_to_num(q50sn120a1)
 	sensor_name_to_num(mp2971)
+	sensor_name_to_num(pm8702)
 
 };
 // clang-format on
@@ -129,6 +130,9 @@ SENSOR_DRIVE_INIT_DECLARE(ltc4286);
 #ifdef ENABLE_APML
 SENSOR_DRIVE_INIT_DECLARE(amd_tsi);
 SENSOR_DRIVE_INIT_DECLARE(apml_mailbox);
+#endif
+#ifdef ENABLE_PM8702
+SENSOR_DRIVE_INIT_DECLARE(pm8702);
 #endif
 SENSOR_DRIVE_INIT_DECLARE(xdpe19283b);
 SENSOR_DRIVE_INIT_DECLARE(g788p81u);
@@ -169,6 +173,9 @@ struct sensor_drive_api {
 #ifdef ENABLE_APML
 	SENSOR_DRIVE_TYPE_INIT_MAP(amd_tsi),
 	SENSOR_DRIVE_TYPE_INIT_MAP(apml_mailbox),
+#endif
+#ifdef ENABLE_PM8702
+	SENSOR_DRIVE_TYPE_INIT_MAP(pm8702),
 #endif
 	SENSOR_DRIVE_TYPE_INIT_MAP(xdpe19283b),
 	SENSOR_DRIVE_TYPE_INIT_MAP(g788p81u),
