@@ -214,43 +214,41 @@ static void add_vr_pmalert_sel(uint8_t gpio_num, uint8_t vr_addr, uint8_t vr_num
 	msg.target_addr = vr_addr;
 
 	for (int page = 0; page < 2; page++) {
-		msg.tx_len = 2;
-		msg.rx_len = 0;
 
-		memset(&msg.data, 0, I2C_BUFF_SIZE);
-		msg.data[0] = PMBUS_PAGE;
-		msg.data[1] = page;
-
-		if (i2c_master_write(&msg, I2C_RETRY)) {
-			printf("[%s] Failed to write page.\n", __func__);
-			continue;
-		}
-
-		msg.tx_len = 1;
+		msg.tx_len = 4;
 		msg.rx_len = 2;
 
 		memset(&msg.data, 0, I2C_BUFF_SIZE);
-		msg.data[0] = PMBUS_STATUS_WORD;
+		msg.data[0] = PMBUS_PAGE_PLUS_READ;
+		msg.data[1] = 0x02;
+		msg.data[2] = page;
+		msg.data[3] = PMBUS_STATUS_WORD;
 
 		if (i2c_master_read(&msg, I2C_RETRY)) {
 			printf("[%s] Failed to read PMBUS_STATUS_WORD.\n", __func__);
 			continue;
 		}
-
-		if (msg.data[0] == NON_ABOVE_ERROR && msg.data[1] == MFR_SPECIFIC_ERROR) { /*exceptional case: MFR_SPECIFIC occurred*/
-			msg.tx_len = 1;
+		
+		if (msg.data[1] == NON_ABOVE_ERROR && msg.data[2] == MFR_SPECIFIC_ERROR) { /*exceptional case: MFR_SPECIFIC occurred*/
+			msg.tx_len = 4;
 			msg.rx_len = 1;
 			memset(&msg.data, 0, I2C_BUFF_SIZE);
-			msg.data[0] = PMBUS_STATUS_MFR_SPECIFIC;
+			msg.data[0] = PMBUS_PAGE_PLUS_READ;
+			msg.data[1] = 0x02;
+			msg.data[2] = page;
+			msg.data[3] = PMBUS_STATUS_MFR_SPECIFIC;
 			if (i2c_master_read(&msg, I2C_RETRY)) {
 				printf("[%s] Failed to read PMBUS_STATUS_WORD.\n", __func__);
 				continue;
 			}
-			if (msg.data[0] ==
+			if (msg.data[1] ==
 			    ADCUNLOCK_BBEVENT_ERROR) { /*exceptional case: ADCUNLOCK and BBEVENT occurred*/
-				msg.tx_len = 1;
+				msg.tx_len = 4;
 				memset(&msg.data, 0, I2C_BUFF_SIZE);
-				msg.data[0] = PMBUS_CLEAR_FAULTS;
+				msg.data[0] = PMBUS_PAGE_PLUS_WRITE;
+				msg.data[1] = 0x02;
+				msg.data[2] = page;
+				msg.data[3] = PMBUS_CLEAR_FAULTS;
 				if (i2c_master_write(&msg, I2C_RETRY)) {
 					printf("[%s] Failed to read PMBUS_STATUS_WORD.\n",
 					       __func__);
@@ -271,8 +269,8 @@ static void add_vr_pmalert_sel(uint8_t gpio_num, uint8_t vr_addr, uint8_t vr_num
 		sel_msg.sensor_type = IPMI_OEM_SENSOR_TYPE_VR;
 		sel_msg.sensor_number = SENSOR_NUM_VR_ALERT;
 		sel_msg.event_data1 = (vr_num << 1) | page;
-		sel_msg.event_data2 = msg.data[0];
-		sel_msg.event_data3 = msg.data[1];
+		sel_msg.event_data2 = msg.data[1];
+		sel_msg.event_data3 = msg.data[2];
 
 		if (!common_add_sel_evt_record(&sel_msg)) {
 			printf("[%s] Failed to add VR PMALERT sel.\n", __func__);
