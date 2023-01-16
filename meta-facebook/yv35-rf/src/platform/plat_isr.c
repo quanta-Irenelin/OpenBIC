@@ -41,6 +41,11 @@
 #define PVDDQ_AB_P0V8_VR 4
 #define PVDDQ_CD_VR 5
 
+#define NON_ABOVE_ERROR 0b00000001 				/*None of the Above error occurred*/
+#define MFR_SPECIFIC_ERROR 0b00010000 			/*MFR_SPECIFIC error occurred*/
+#define ADCUNLOCK_BBEVENT_ERROR 0b10001000 		/*ADCUNLOCK and BBEVENT occurred*/
+
+
 K_WORK_DELAYABLE_DEFINE(set_DC_on_5s_work, set_DC_on_delayed_status);
 
 K_THREAD_STACK_DEFINE(power_thread, POWER_SEQ_CTRL_STACK_SIZE);
@@ -212,7 +217,7 @@ static void add_vr_pmalert_sel(uint8_t gpio_num, uint8_t vr_addr, uint8_t vr_num
 		msg.tx_len = 2;
 		msg.rx_len = 0;
 
-		memset(&msg.data, 0, sizeof(I2C_BUFF_SIZE));
+		memset(&msg.data, 0, I2C_BUFF_SIZE);
 		msg.data[0] = PMBUS_PAGE;
 		msg.data[1] = page;
 
@@ -224,7 +229,7 @@ static void add_vr_pmalert_sel(uint8_t gpio_num, uint8_t vr_addr, uint8_t vr_num
 		msg.tx_len = 1;
 		msg.rx_len = 2;
 
-		memset(&msg.data, 0, sizeof(I2C_BUFF_SIZE));
+		memset(&msg.data, 0, I2C_BUFF_SIZE);
 		msg.data[0] = PMBUS_STATUS_WORD;
 
 		if (i2c_master_read(&msg, I2C_RETRY)) {
@@ -232,19 +237,19 @@ static void add_vr_pmalert_sel(uint8_t gpio_num, uint8_t vr_addr, uint8_t vr_num
 			continue;
 		}
 
-		if (msg.data[1] == 0b00010000) { /*exceptional case: MFR_SPECIFIC occurred*/
+		if (msg.data[0] == NON_ABOVE_ERROR && msg.data[1] == MFR_SPECIFIC_ERROR) { /*exceptional case: MFR_SPECIFIC occurred*/
 			msg.tx_len = 1;
 			msg.rx_len = 1;
-			memset(&msg.data, 0, sizeof(I2C_BUFF_SIZE));
+			memset(&msg.data, 0, I2C_BUFF_SIZE);
 			msg.data[0] = PMBUS_STATUS_MFR_SPECIFIC;
 			if (i2c_master_read(&msg, I2C_RETRY)) {
 				printf("[%s] Failed to read PMBUS_STATUS_WORD.\n", __func__);
 				continue;
 			}
 			if (msg.data[0] ==
-			    0b10001000) { /*exceptional case: ADCUNLOCK and BBEVENT occurred*/
+			    ADCUNLOCK_BBEVENT_ERROR) { /*exceptional case: ADCUNLOCK and BBEVENT occurred*/
 				msg.tx_len = 1;
-				memset(&msg.data, 0, sizeof(I2C_BUFF_SIZE));
+				memset(&msg.data, 0, I2C_BUFF_SIZE);
 				msg.data[0] = PMBUS_CLEAR_FAULTS;
 				if (i2c_master_write(&msg, I2C_RETRY)) {
 					printf("[%s] Failed to read PMBUS_STATUS_WORD.\n",
