@@ -76,8 +76,8 @@ typedef struct _mctp_cci_cmd_handler {
 	mctp_cci_cmd_fn fn;
 } mctp_cci_cmd_handler_t;
 
-#define DEV_TEMP_OFFSET 16
 #define CCI_CC_INVALID_INPUT 0x0002
+#define VER_STR_LEN 16
 
 /*
  * CCI Return Codes
@@ -104,6 +104,7 @@ typedef struct _wait_msg {
 uint8_t mctp_cci_cmd_handler(void *mctp_p, uint8_t *buf, uint32_t len, mctp_ext_params ext_params);
 void cci_read_resp_handler(void *args, uint8_t *rbuf, uint16_t rlen, uint16_t ret_code);
 bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_temp);
+bool cci_get_chip_version(void *mctp_p, mctp_ext_params ext_params, uint8_t *version);
 
 /* send CCI command message through mctp */
 uint8_t mctp_cci_send_msg(void *mctp_p, mctp_cci_msg *msg);
@@ -120,5 +121,17 @@ typedef struct __attribute__((__packed__)) {
 	uint32_t volatile_mem_err_cnt;
 	uint32_t persistent_mem_err_cnt;
 } cci_health_info_resp;
+
+
+typedef struct __attribute__((__packed__)) {
+	uint8_t fw_slot1_support;
+	uint8_t fw_slot_info;
+	uint8_t fw_act_capabilities;
+	uint8_t rsvd[13];
+	uint8_t slot1_fw_ver[16];
+	uint8_t slot2_fw_ver[16];
+	uint8_t slot3_fw_ver[16];
+	uint8_t slot4_fw_ver[16];
+} cci_get_fw_info;
 
 #endif /* _CCI_H */

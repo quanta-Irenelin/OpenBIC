@@ -305,6 +305,35 @@ bool cci_get_chip_temp(void *mctp_p, mctp_ext_params ext_params, int16_t *chip_t
 	return true;
 }
 
+bool cci_get_chip_version(void *mctp_p, mctp_ext_params ext_params, uint8_t *version)
+{
+	CHECK_NULL_ARG_WITH_RETURN(mctp_p, false);
+	CHECK_NULL_ARG_WITH_RETURN(version, false);
+
+	mctp_cci_msg msg = { 0 };
+	memcpy(&msg.ext_params, &ext_params, sizeof(msg.ext_params));
+
+	msg.hdr.op = CCI_GET_FW_INFO;
+	msg.hdr.pl_len = GET_FW_INFO_REQ_PL_LEN;
+
+	int resp_len = sizeof(cci_get_fw_info);
+	uint8_t rbuf[resp_len];
+
+	if (mctp_cci_read(mctp_p, &msg, rbuf, resp_len) != resp_len) {
+		LOG_ERR("[%s] mctp_cci_read fail", __func__);
+		return false;
+	}
+	LOG_HEXDUMP_INF(rbuf, resp_len, "CCI_Get__Info");
+
+	// memcpy(version, rbuf+16, 16);
+
+	cci_get_fw_info *resp_p = (cci_get_fw_info *)rbuf;
+	for(int i = 0; i < VER_STR_LEN; i++) {
+		*(version + i)= resp_p->slot1_fw_ver[i];
+	}
+	return true;
+}
+
 K_THREAD_DEFINE(monitor_cci_msg, 1024, mctp_cci_msg_timeout_monitor, NULL, NULL, NULL, 7, 0, 0);
 
 #endif

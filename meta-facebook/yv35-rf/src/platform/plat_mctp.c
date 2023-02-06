@@ -224,7 +224,35 @@ void plat_mctp_init()
 		mctp_start(p->mctp_inst);
 	}
 	/* Only send command to device when DC on */
-	if (gpio_get(FM_POWER_EN) == POWER_ON) {
+	if (gpio_get(CLK_100M_OSC_EN) == POWER_ON) {
 		k_timer_start(&send_cmd_timer, K_MSEC(3000), K_NO_WAIT);
 	}
 }
+
+#include <shell/shell.h>
+#include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
+#include "plat_hook.h"
+
+static int get_ver(const struct shell *shell, size_t argc, char **argv)
+{	
+	uint8_t version[16] = { 0 }; 
+	mctp *mctp_inst = NULL;
+	mctp_ext_params ext_params = { 0 };
+    get_mctp_info_by_eid(0x2E, &mctp_inst, &ext_params);
+    cci_get_chip_version(mctp_inst,ext_params, version);
+
+	printk("version: ");
+    for(int i=0; i<16; i++){ 
+        printk("%02x ", version[i]);
+    }
+    return 0;
+}
+
+
+SHELL_STATIC_SUBCMD_SET_CREATE(sub_pm8702_test,
+			       SHELL_CMD(get_ver, NULL, "read fw version", get_ver),
+			       SHELL_SUBCMD_SET_END /* Array terminated. */
+);
+SHELL_CMD_REGISTER(pm8702, &sub_pm8702_test, "Test PM8702 Cmd", NULL);
