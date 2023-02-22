@@ -22,12 +22,15 @@
 
 /*CCI (pm8702 vendor CMD) */
 #define pm8702_I2C_OFFSET_READ 0xc401
+#define pm8702_read_dimm_temp 0xc531
 
 /*CCI (pm8702 vendor CMD) Request paypload length */
 #define I2C_OFFSET_READ_REQ_PL_LEN 20 /*Size Bytes*/
+#define READ_DIMM_TEMP_REQ_PL_LEN 0 /*Size Bytes*/
 
 /*CCI (pm8702 vendor CMD) Response paypload length */
 #define DIMM_TEMP_READ_RESP_PL_LEN 2 /*Size Bytes*/
+#define READ_DIMM_TEMP_RESP_PL_LEN 84 /*Size Bytes*/
 
 /*PM8702_I2C_OFFSET_READ parameters */
 #define ADDR_SIZE_7_BIT 0x00

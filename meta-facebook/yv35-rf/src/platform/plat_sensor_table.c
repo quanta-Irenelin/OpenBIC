@@ -27,6 +27,14 @@
 #include "plat_mctp.h"
 
 static uint8_t INA233_DEVICE_ID[4] = { 0x02, 0x54, 0x49, 0xe2 };
+sensor_poll_time_cfg diff_poll_time_sensor_table[] = {
+	// sensor_number, last_access_time
+	{ SENSOR_NUM_TEMP_CXL, 0 },
+	{ SENSOR_NUM_TEMP_DIMMA, 0 },
+	{ SENSOR_NUM_TEMP_DIMMB, 0 },
+	{ SENSOR_NUM_TEMP_DIMMC, 0 },
+	{ SENSOR_NUM_TEMP_DIMMD, 0 },
+};
 
 sensor_cfg plat_sensor_config[] = {
 	/* number,                  type,       port,      address,      offset,
@@ -38,22 +46,22 @@ sensor_cfg plat_sensor_config[] = {
 	  stby_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0,
 	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 	{ SENSOR_NUM_TEMP_CXL, sensor_dev_pm8702, CXL_EID, NONE, CHIP_TEMP_OFFSET, dc_access, 0, 0,
-	  SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0, SENSOR_INIT_STATUS,
+	  SAMPLE_COUNT_DEFAULT, 2, ENABLE_SENSOR_POLLING, 0, SENSOR_INIT_STATUS,
 	  NULL, NULL, NULL, NULL, NULL },
 	{ SENSOR_NUM_TEMP_DIMMA, sensor_dev_pm8702, CXL_EID, DIMMA_TEMP_ADDR, DIMM_TEMP_OFFSET,
-	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0,
+	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, 2, DISABLE_SENSOR_POLLING, 0,
 	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 	{ SENSOR_NUM_TEMP_DIMMB, sensor_dev_pm8702, CXL_EID, DIMMB_TEMP_ADDR, DIMM_TEMP_OFFSET,
-	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0,
+	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, 2, ENABLE_SENSOR_POLLING, 0,
 	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 	{ SENSOR_NUM_TEMP_DIMMC, sensor_dev_pm8702, CXL_EID, DIMMC_TEMP_ADDR, DIMM_TEMP_OFFSET,
-	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0,
+	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, 2, DISABLE_SENSOR_POLLING, 0,
 	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 	{ SENSOR_NUM_TEMP_DIMMD, sensor_dev_pm8702, CXL_EID, DIMMD_TEMP_ADDR, DIMM_TEMP_OFFSET,
-	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0,
+	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, 2, DISABLE_SENSOR_POLLING, 0,
 	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 	{ SENSOR_NUM_TEMP_CXL_CNTR, sensor_dev_tmp75, I2C_BUS2, TMP75_ASIC_ADDR, TMP75_TEMP_OFFSET,
-	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, ENABLE_SENSOR_POLLING, 0,
+	  dc_access, 0, 0, SAMPLE_COUNT_DEFAULT, POLL_TIME_DEFAULT, DISABLE_SENSOR_POLLING, 0,
 	  SENSOR_INIT_STATUS, NULL, NULL, NULL, NULL, NULL },
 
 	// ADC
@@ -394,6 +402,31 @@ uint8_t pal_get_extend_sensor_config()
 	extend_sensor_config_size += ARRAY_SIZE(VR_RNS_sensor_config_table);
 
 	return extend_sensor_config_size;
+}
+
+
+bool pal_is_time_to_poll(uint8_t sensor_num, int poll_time)
+{
+	int i = 0;
+	int table_size = sizeof(diff_poll_time_sensor_table) / sizeof(sensor_poll_time_cfg);
+
+	for (i = 0; i < table_size; i++) {
+		if (sensor_num == diff_poll_time_sensor_table[i].sensor_num) {
+			int64_t current_access_time = k_uptime_get();
+			int64_t last_access_time = diff_poll_time_sensor_table[i].last_access_time;
+			int64_t diff_time = (current_access_time - last_access_time) / 1000;
+			if ((last_access_time != 0) && (diff_time < poll_time)) {
+				return false;
+			} else {
+				diff_poll_time_sensor_table[i].last_access_time =
+					current_access_time;
+				return true;
+			}
+		}
+	}
+
+	// LOG_ERR("Can't find sensor 0x%x last access time\n", sensor_num);
+	return true;
 }
 
 const int SENSOR_CONFIG_SIZE = ARRAY_SIZE(plat_sensor_config);

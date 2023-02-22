@@ -22,6 +22,7 @@
 #include "mctp.h"
 #include <logging/log.h>
 #include "plat_def.h"
+#include "plat_sensor_table.h"
 #include "libutil.h"
 
 #ifdef ENABLE_PM8702
@@ -83,6 +84,51 @@ bool pm8702_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t add
 	return true;
 }
 
+
+bool pm8702_cci_get_dimm_temp(void *mctp_p, mctp_ext_params ext_params, uint16_t address,
+			  int16_t *interger, int16_t *fraction)
+{
+	CHECK_NULL_ARG_WITH_RETURN(mctp_p, false);
+	CHECK_NULL_ARG_WITH_RETURN(interger, false);
+	CHECK_NULL_ARG_WITH_RETURN(fraction, false);
+
+	i2c_offset_read_req req = { 0 };
+	mctp_cci_msg msg = { 0 };
+	memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
+
+	msg.hdr.op = pm8702_read_dimm_temp;
+	msg.hdr.pl_len = sizeof(req);
+
+	memcpy(msg.pl_data, &req, sizeof(req));
+	uint8_t rbuf[READ_DIMM_TEMP_RESP_PL_LEN] = { 0 };
+	if (mctp_cci_read(mctp_p, &msg, rbuf, READ_DIMM_TEMP_RESP_PL_LEN) !=
+	    READ_DIMM_TEMP_RESP_PL_LEN) {
+		LOG_ERR("[%s] mctp_cci_read fail", __func__);
+		SAFE_FREE(msg.pl_data);
+		return false;
+	}
+	if(address == DIMMA_TEMP_ADDR){
+		*interger = rbuf[40];
+		*fraction = rbuf[41] * 10;
+	}
+
+	if(address == DIMMB_TEMP_ADDR){
+		*interger = rbuf[20];
+		*fraction = rbuf[21] * 10;
+	}
+	if(address == DIMMC_TEMP_ADDR){
+		*interger = rbuf[60];
+		*fraction = rbuf[61] * 10;
+	}
+	if(address == DIMMD_TEMP_ADDR){
+		*interger = rbuf[80];
+		*fraction = rbuf[81] * 10;
+	}
+
+	SAFE_FREE(msg.pl_data);
+	return true;
+}
+
 uint8_t pm8702_read(uint8_t sensor_num, int *reading)
 {
 	CHECK_NULL_ARG_WITH_RETURN(reading, SENSOR_UNSPECIFIED_ERROR);
@@ -111,7 +157,7 @@ uint8_t pm8702_read(uint8_t sensor_num, int *reading)
 		sval->fraction = 0;
 		break;
 	case dimm_temp:
-		if (pm8702_get_dimm_temp(mctp_inst, ext_params, address, &sval->integer,
+		if (pm8702_cci_get_dimm_temp(mctp_inst, ext_params, address, &sval->integer,
 					 &sval->fraction) == false) {
 			return SENSOR_NOT_ACCESSIBLE;
 		}

@@ -438,7 +438,6 @@ void sensor_poll_handler(void *arug0, void *arug1, void *arug2)
 					continue;
 				}
 			}
-
 			get_sensor_reading(sensor_num, &reading, GET_FROM_SENSOR);
 
 			k_yield();
