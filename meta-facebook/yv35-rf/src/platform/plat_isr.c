@@ -33,6 +33,10 @@
 #include "plat_i2c.h"
 #include "plat_sensor_table.h"
 
+#include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
+
 #define POWER_SEQ_CTRL_STACK_SIZE 1000
 #define DC_ON_5_SECOND 5
 #define I2C_RETRY 5
@@ -202,6 +206,20 @@ void ISR_PVTT_AB_POWER_GOOD_LOST()
 void ISR_PVTT_CD_POWER_GOOD_LOST()
 {
 	check_power_abnormal(PVTT_CD_PG_R, PVTT_CD_EN_R);
+}
+
+void ISR_GET_CXL_VERSION()
+{
+	uint8_t version[16] = { 0 }; 
+	mctp *mctp_inst = NULL;
+	mctp_ext_params ext_params = { 0 };
+    get_mctp_info_by_eid(0x2E, &mctp_inst, &ext_params);
+    cci_get_chip_version(mctp_inst,ext_params, version);
+
+	printk("version: ");
+    for(int i=0; i<16; i++){ 
+        printk("%02x ", version[i]);
+    }
 }
 
 static void add_vr_pmalert_sel(uint8_t gpio_num, uint8_t vr_addr, uint8_t vr_num)

@@ -149,6 +149,7 @@ uint8_t pm8702_read(uint8_t sensor_num, int *reading)
 	if (!mctp_inst) {
 		return SENSOR_UNSPECIFIED_ERROR;
 	}
+
 	switch (pm8702_access) {
 	case chip_temp:
 		if (cci_get_chip_temp(mctp_inst, ext_params, &sval->integer) == false) {
