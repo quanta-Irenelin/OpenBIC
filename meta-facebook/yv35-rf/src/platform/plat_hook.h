@@ -17,6 +17,8 @@
 #ifndef PLAT_HOOK_H
 #define PLAT_HOOK_H
 
+static K_MUTEX_DEFINE(wait_pm8702_mutex);
+
 typedef struct _isl69254iraz_t_pre_arg_ {
 	uint8_t vr_page;
 } isl69254iraz_t_pre_arg;
@@ -30,6 +32,7 @@ typedef struct _vr_pre_proc_arg {
  * INIT ARGS
 **************************************************************************************************/
 extern adc_asd_init_arg adc_asd_init_args[];
+extern pm8702_ddr_init_arg pm8702_ddr_init_args[];
 extern ina230_init_arg SQ5220x_init_args[];
 extern ina233_init_arg ina233_init_args[];
 extern vr_pre_proc_arg vr_page_select[];
@@ -44,5 +47,6 @@ extern isl69254iraz_t_pre_arg isl69254iraz_t_pre_read_args[];
 bool pre_isl69254iraz_t_read(uint8_t sensor_num, void *args);
 bool pre_vr_read(uint8_t sensor_num, void *args);
 bool pre_pm8702_read(uint8_t sensor_num, void *args);
+bool post_pm8702_read(uint8_t sensor_num, void *args, int *reading);
 
 #endif

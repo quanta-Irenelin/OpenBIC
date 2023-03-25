@@ -293,6 +293,11 @@ typedef struct _adc_asd_init_arg {
 	bool is_init;
 } adc_asd_init_arg;
 
+typedef struct _pm8702_ddr_init_arg {
+	bool is_init;
+	uint8_t dimm_id;
+} pm8702_ddr_init_arg;
+
 typedef struct _adm1278_init_arg {
 	/* value to set configuration register */
 	union {
@@ -411,6 +416,10 @@ typedef struct _ina233_init_arg_ {
 typedef struct _max16550a_init_arg_ {
 	float r_load;
 } max16550a_init_arg;
+
+typedef struct _pm8702_init_arg_ {
+	bool is_init;
+} pm8702_init_arg;
 
 typedef struct _ina230_init_arg {
 	/* value to set configuration register */

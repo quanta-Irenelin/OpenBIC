@@ -22,12 +22,23 @@
 #include "plat_sensor_table.h"
 #include "plat_hook.h"
 #include <logging/log.h>
-
+#include "pm8702.h"
+#include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
+#include <stdlib.h>
 LOG_MODULE_REGISTER(plat_hook);
+
 /**************************************************************************************************
  * INIT ARGS
 **************************************************************************************************/
 adc_asd_init_arg adc_asd_init_args[] = { [0] = { .is_init = false } };
+pm8702_ddr_init_arg pm8702_ddr_init_args[] = { 
+	[0] = { .is_init = false, .dimm_id = 0 },
+	[1] = { .is_init = false, .dimm_id = 1 },
+	[2] = { .is_init = false, .dimm_id = 2 },
+	[3] = { .is_init = false, .dimm_id = 3 } 
+};
 
 ina233_init_arg ina233_init_args[] = {
 	[0] = {
@@ -177,8 +188,73 @@ bool pre_isl69254iraz_t_read(uint8_t sensor_num, void *args)
 	return true;
 }
 
+
+
+// bool pre_pm8702_read(uint8_t sensor_num, void *args)
+// {	
+// 	I2C_MSG msg;
+// 	memset(&msg, 0, sizeof(I2C_MSG));
+// 	msg.target_addr = sensor_config[sensor_config_index_map[sensor_num]].target_addr;
+// 	mctp *mctp_inst = NULL;
+// 	mctp_ext_params ext_params = { 0 };
+
+// 	if (get_mctp_info_by_eid(CXL_EID, &mctp_inst, &ext_params) == false) {
+// 		return false;
+// 	}
+// 	k_msleep(20);
+// 	// bool dimm_present_result = pm8702_get_dimm_status(mctp_inst, ext_params, 0x51);
+// 	int dimm_present_num = 0;
+// 	bool dimm_present_result = false;
+// 	pm8702_get_dimm_status(mctp_inst, ext_params, &dimm_present_num, msg.target_addr, &dimm_present_result);
+// 	printf("pre_num: %d, status: %d\n", dimm_present_num, dimm_present_result);
+
+// 	if (dimm_present_result == false) {
+// 			control_sensor_polling(sensor_num, DISABLE_SENSOR_POLLING,
+// 					       SENSOR_NOT_PRESENT);
+// 	}
+
+// 	// k_msleep(20);
+// 	// dimm_sensor_info *p =(dimm_sensor_info *)malloc(4 *sizeof(dimm_sensor_info)); ;
+
+// 	// pm8702_get_ddr_temp(mctp_inst, ext_params, dimm_present_num, p);
+// 	// printf("dimm B temp: %d\n", p[0].temp_int);
+// 	// printf("dimm D temp: %d\n", p[1].temp_int);
+// 	// printf("dimm A temp: %d\n", p[2].temp_int);
+// 	// printf("dimm C temp: %d\n", p[3].temp_int);
+// 	// free(p);
+// 	// k_msleep(20);
+
+// 	return true;
+// }
+
+
 bool pre_pm8702_read(uint8_t sensor_num, void *args)
-{
+{	
+	// I2C_MSG msg;
+	// memset(&msg, 0, sizeof(I2C_MSG));
+	// msg.target_addr = sensor_config[sensor_config_index_map[sensor_num]].target_addr;
+	// mctp *mctp_inst = NULL;
+	// mctp_ext_params ext_params = { 0 };
+
+	// if (get_mctp_info_by_eid(CXL_EID, &mctp_inst, &ext_params) == false) {
+	// 	return false;
+	// }
+	// bool dimm_present_result = pm8702_get_dimm_status(mctp_inst, ext_params, msg.target_addr);
+	// printf("result: %d\n", dimm_present_result);
+
+	// if (dimm_present_result == false) {
+	// 		control_sensor_polling(sensor_num, DISABLE_SENSOR_POLLING,
+	// 				       SENSOR_NOT_PRESENT);
+	// }
+	k_mutex_lock(&wait_pm8702_mutex, K_FOREVER);
 	k_msleep(20);
+
+	return true;
+}
+
+bool post_pm8702_read(uint8_t sensor_num, void *args, int *reading)
+{
+	k_mutex_unlock(&wait_pm8702_mutex);
+
 	return true;
 }
