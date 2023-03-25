@@ -26,6 +26,8 @@
 #include "cci.h"
 #include "mctp.h"
 #include "plat_mctp.h"
+#include "sensor.h"
+#include "plat_hook.h"
 
 LOG_MODULE_REGISTER(plat_ipmi);
 
@@ -80,6 +82,8 @@ void OEM_1S_GET_FW_VERSION(ipmi_msg *msg)
 			return;
 		}
 		CHECK_NULL_ARG(mctp_inst);
+		k_mutex_lock(&wait_pm8702_mutex, K_FOREVER);
+		k_msleep(20);
 		ret = cci_get_chip_fw_version(mctp_inst, ext_params, resp_buf, &read_len);
 		if (ret == false) {
 			msg->completion_code = CC_UNSPECIFIED_ERROR;
@@ -87,6 +91,7 @@ void OEM_1S_GET_FW_VERSION(ipmi_msg *msg)
 			memcpy(&msg->data[0], resp_buf, read_len);
 			msg->data_len = read_len;
 			msg->completion_code = CC_SUCCESS;
+			k_mutex_unlock(&wait_pm8702_mutex);
 		}
 		break;
 	default:

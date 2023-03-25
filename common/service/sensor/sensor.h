@@ -294,6 +294,11 @@ typedef struct _adc_asd_init_arg {
 	bool is_init;
 } adc_asd_init_arg;
 
+typedef struct _pm8702_dimm_init_arg {
+	bool is_init;
+	uint8_t dimm_id;
+} pm8702_dimm_init_arg;
+
 typedef struct _adm1278_init_arg {
 	/* value to set configuration register */
 	union {

@@ -22,12 +22,24 @@
 #include "plat_sensor_table.h"
 #include "plat_hook.h"
 #include <logging/log.h>
+#include "pm8702.h"
+#include "cci.h"
+#include "mctp.h"
+#include "plat_mctp.h"
+#include <stdlib.h>
 
 LOG_MODULE_REGISTER(plat_hook);
 /**************************************************************************************************
  * INIT ARGS
 **************************************************************************************************/
 adc_asd_init_arg adc_asd_init_args[] = { [0] = { .is_init = false } };
+
+pm8702_dimm_init_arg pm8702_dimm_init_args[] = { 
+	[0] = { .is_init = false, .dimm_id = 0 },
+	[1] = { .is_init = false, .dimm_id = 1 },
+	[2] = { .is_init = false, .dimm_id = 2 },
+	[3] = { .is_init = false, .dimm_id = 3 } 
+};
 
 ina233_init_arg ina233_init_args[] = {
 	[0] = {
@@ -179,6 +191,14 @@ bool pre_isl69254iraz_t_read(uint8_t sensor_num, void *args)
 
 bool pre_pm8702_read(uint8_t sensor_num, void *args)
 {
+	k_mutex_lock(&wait_pm8702_mutex, K_FOREVER);
 	k_msleep(20);
+	return true;
+}
+
+bool post_pm8702_read(uint8_t sensor_num, void *args, int *reading)
+{
+	k_mutex_unlock(&wait_pm8702_mutex);
+
 	return true;
 }
