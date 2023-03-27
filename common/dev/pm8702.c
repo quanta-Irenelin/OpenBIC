@@ -130,13 +130,13 @@ bool pm8702_read_dimm_temp_from_pioneer(void *mctp_p, mctp_ext_params ext_params
 	for(int i =0; i <dimm_num; i++){
 		dimm_slot_info_p = (dimm_slot_info *)(rbuf + sizeof(dimm_info_header) + (sizeof(dimm_slot_info)*i));
 		if(dimm_id == dimm_slot_info_p->dimm_id){
-			*temp_int = dimm_slot_info_p->temp_int;
-			*temp_dec = dimm_slot_info_p->temp_dec * 10;
 			LOG_DBG("dimm #%d temp: %d.%d\n",dimm_id, *temp_int, *temp_dec);
-			if(*temp_int == DIMM_ERROR_VALUE){
+			if(dimm_slot_info_p->temp_int == DIMM_ERROR_VALUE){
 				LOG_ERR("Failed to get the dimm data.");
 				ret = false;
 			}else{
+				*temp_int = dimm_slot_info_p->temp_int;
+				*temp_dec = dimm_slot_info_p->temp_dec * 10;
 				ret = true;
 			}
 		}
