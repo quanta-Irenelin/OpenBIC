@@ -39,10 +39,10 @@
 #define SMBUS_TEMP_CMD 0x8D
 #define SMBUS_PWR_CMD 0x96
 
-#define DIMMA_TEMP_ADDR 0x50
-#define DIMMB_TEMP_ADDR 0x51
-#define DIMMC_TEMP_ADDR 0x52
-#define DIMMD_TEMP_ADDR 0x53
+#define DIMMA_SPD_ADDR 0x50
+#define DIMMB_SPD_ADDR 0x51
+#define DIMMC_SPD_ADDR 0x52
+#define DIMMD_SPD_ADDR 0x53
 
 /*  threshold sensor number, 1 based  */
 #define SENSOR_NUM_TEMP_TMP75 0x50
