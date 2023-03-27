@@ -33,6 +33,7 @@
 #define HBO_STATUS_REQ_PL_LEN 0
 #define HBO_TRANSFER_FW_REQ_PL_LEN 256
 #define HBO_ACTIVATE_FW_REQ_PL_LEN 2
+#define READ_DIMM_TEMP_REQ_PL_LEN 0
 
 /*CCI (pm8702 vendor CMD) Response paypload length */
 #define DIMM_TEMP_READ_RESP_PL_LEN 2 /*Size Bytes*/

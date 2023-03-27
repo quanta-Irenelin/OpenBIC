@@ -17,7 +17,7 @@
 #ifndef PLAT_HOOK_H
 #define PLAT_HOOK_H
 
-static K_MUTEX_DEFINE(wait_pm8702_mutex);
+extern struct k_mutex wait_pm8702_mutex;
 
 typedef struct _isl69254iraz_t_pre_arg_ {
 	uint8_t vr_page;

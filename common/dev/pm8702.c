@@ -103,20 +103,16 @@ bool pm8702_cmd_handler(void *mctp_inst, mctp_ext_params ext_params, uint16_t op
 bool pm8702_read_dimm_temp_from_pioneer(void *mctp_p, mctp_ext_params ext_params, int dimm_id, int16_t *temp_int, int16_t *temp_dec)
 {
 	CHECK_NULL_ARG_WITH_RETURN(mctp_p, false);
+	CHECK_NULL_ARG_WITH_RETURN(temp_int, false);
+	CHECK_NULL_ARG_WITH_RETURN(temp_dec, false);
+
 	int ret = false;
 
-	i2c_offset_read_req req = { 0 };
 	mctp_cci_msg msg = { 0 };
 	memcpy(&msg.ext_params, &ext_params, sizeof(mctp_ext_params));
 
 	msg.hdr.op = PM8702_READ_DIMM_TEMP;
-	msg.hdr.pl_len = sizeof(req);
-
-	msg.pl_data = (uint8_t *)malloc(sizeof(req));
-	if (msg.pl_data == NULL) {
-		LOG_ERR("Failed to allocate payload data.");
-		return ret;
-	}
+	msg.hdr.pl_len = READ_DIMM_TEMP_REQ_PL_LEN;
 
 	uint8_t rbuf[DIMM_TEMP_RESP_PL_LEN] = {0};
 
@@ -126,28 +122,16 @@ bool pm8702_read_dimm_temp_from_pioneer(void *mctp_p, mctp_ext_params ext_params
 		return ret;
 	}
 
-	// LOG_HEXDUMP_DBG(rbuf, DIMM_TEMP_RESP_PL_LEN, "pm8702_get_ddr_temp");
-	dimm_info_header *dimm_info_header_p = (dimm_info_header *)calloc(1, sizeof(dimm_info_header));
-	if (dimm_info_header_p == NULL) {
-		LOG_ERR("Failed to allocate info_header data.");
-		SAFE_FREE(msg.pl_data);
-		return ret;
-	}
-	memcpy(dimm_info_header_p, rbuf, sizeof(dimm_info_header));
-
-	dimm_slot_info *dimm_slot_info_p = (dimm_slot_info *)calloc(dimm_info_header_p[0].dimm_num, sizeof(dimm_slot_info));
-	if (dimm_slot_info_p == NULL) {
-		LOG_ERR("Failed to allocate sensor_info data.");
-		SAFE_FREE(dimm_info_header_p);
-		SAFE_FREE(msg.pl_data);
-		return ret;
-	}
-	memcpy(dimm_slot_info_p, rbuf+sizeof(dimm_info_header), dimm_info_header_p[0].dimm_num *sizeof(dimm_slot_info));
-
-	for(int i = 0; i <dimm_info_header_p[0].dimm_num; i++){
-		if(dimm_id == dimm_slot_info_p[i].dimm_id){
-			*temp_int = dimm_slot_info_p[i].temp_int;
-			*temp_dec = dimm_slot_info_p[i].temp_dec * 10;
+	LOG_HEXDUMP_DBG(rbuf, DIMM_TEMP_RESP_PL_LEN, "pm8702_get_ddr_temp");
+	dimm_info_header *dimm_info_header_p = (dimm_info_header *)rbuf;
+	int dimm_num = dimm_info_header_p->dimm_num;
+	dimm_slot_info *dimm_slot_info_p = (dimm_slot_info *)(rbuf + sizeof(dimm_info_header));
+	
+	for(int i =0; i <dimm_num; i++){
+		dimm_slot_info_p = (dimm_slot_info *)(rbuf + sizeof(dimm_info_header) + (sizeof(dimm_slot_info)*i));
+		if(dimm_id == dimm_slot_info_p->dimm_id){
+			*temp_int = dimm_slot_info_p->temp_int;
+			*temp_dec = dimm_slot_info_p->temp_dec * 10;
 			LOG_DBG("dimm #%d temp: %d.%d\n",dimm_id, *temp_int, *temp_dec);
 			if(*temp_int == DIMM_ERROR_VALUE){
 				LOG_ERR("Failed to get the dimm data.");
@@ -157,8 +141,6 @@ bool pm8702_read_dimm_temp_from_pioneer(void *mctp_p, mctp_ext_params ext_params
 			}
 		}
 	}
-	SAFE_FREE(dimm_info_header_p);
-	SAFE_FREE(dimm_slot_info_p);
 	SAFE_FREE(msg.pl_data);
 	return ret;
 }

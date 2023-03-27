@@ -22,12 +22,8 @@
 #include "plat_sensor_table.h"
 #include "plat_hook.h"
 #include <logging/log.h>
-#include "pm8702.h"
-#include "cci.h"
-#include "mctp.h"
-#include "plat_mctp.h"
 #include <stdlib.h>
-
+K_MUTEX_DEFINE(wait_pm8702_mutex);
 LOG_MODULE_REGISTER(plat_hook);
 /**************************************************************************************************
  * INIT ARGS
@@ -191,7 +187,10 @@ bool pre_isl69254iraz_t_read(uint8_t sensor_num, void *args)
 
 bool pre_pm8702_read(uint8_t sensor_num, void *args)
 {
-	k_mutex_lock(&wait_pm8702_mutex, K_FOREVER);
+	if(k_mutex_lock(&wait_pm8702_mutex, K_MSEC(3000))){
+		LOG_WRN("pm8702 mutex is locked over 3000 ms!!\n");
+		return false;
+	}
 	k_msleep(20);
 	return true;
 }
@@ -199,6 +198,5 @@ bool pre_pm8702_read(uint8_t sensor_num, void *args)
 bool post_pm8702_read(uint8_t sensor_num, void *args, int *reading)
 {
 	k_mutex_unlock(&wait_pm8702_mutex);
-
 	return true;
 }
