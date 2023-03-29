@@ -50,6 +50,7 @@ void pal_set_sys_status()
 	set_MB_DC_status(FM_POWER_EN);
 	set_DC_status(PWRGD_CARD_PWROK);
 	control_power_sequence();
+	k_work_schedule(&record_cxl_version_work, K_SECONDS(10));
 	set_DC_on_delayed_status();
 	set_DC_off_delayed_status();
 }
