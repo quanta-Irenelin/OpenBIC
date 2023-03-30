@@ -23,7 +23,6 @@ void init_power_off_thread();
 void abort_power_thread();
 void check_power_abnormal(uint8_t power_good_gpio_num, uint8_t control_power_gpio_num);
 void ISR_MB_DC_STATE();
-void ISR_DC_STATE();
 void ISR_MB_RST();
 void ISR_P0V8_ASICA_POWER_GOOD_LOST();
 void ISR_P0V8_ASICD_POWER_GOOD_LOST();
@@ -39,7 +38,6 @@ void ISR_PASICA_PMALT();
 void ISR_PVDDQ_AB_PMALT();
 void ISR_PVDDQ_CD_PMALT();
 void record_cxl_version();
-void ISR_CXL_STATE();
 extern struct k_work_delayable record_cxl_version_work;
 
 #endif

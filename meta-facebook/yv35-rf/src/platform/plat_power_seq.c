@@ -25,22 +25,14 @@
 #include "plat_sensor_table.h"
 #include "plat_power_seq.h"
 #include <logging/log.h>
+#include "power_status.h"
 
 LOG_MODULE_REGISTER(power_sequence);
 
+#define DC_ON_5_SECOND 5
+K_WORK_DELAYABLE_DEFINE(set_DC_on_5s_work, set_DC_on_delayed_status);
 static bool power_on_handler(uint8_t);
 static bool power_off_handler(uint8_t);
-static uint8_t cxl_power_status = CXL_POWER_OFF;
-
-void init_cxl_power_status()
-{
-	if (gpio_get(ASIC_DEV_RST_N) == GPIO_HIGH)
-		cxl_power_status = CXL_POWER_ON;
-	else if (gpio_get(CLK_100M_OSC_EN) == GPIO_LOW)
-		cxl_power_status = CXL_POWER_OFF;
-	else
-		LOG_ERR("Unknown CXL power status");
-}
 
 void set_MB_DC_status(uint8_t gpio_num)
 {
@@ -51,7 +43,7 @@ void set_MB_DC_status(uint8_t gpio_num)
 
 void control_power_on_sequence()
 {
-	if (cxl_power_status == CXL_POWER_ON)
+	if (get_DC_status())
 		return;
 
 	bool is_power_on = false;
@@ -61,7 +53,10 @@ void control_power_on_sequence()
 		gpio_set(PWRGD_CARD_PWROK, POWER_ON);
 		k_usleep(100);
 		control_power_stage(ENABLE_POWER_MODE, ASIC_DEV_RST_N);
-		cxl_power_status = CXL_POWER_ON;
+		k_work_schedule(&record_cxl_version_work, K_SECONDS(10));
+		set_DC_status(PWRGD_CARD_PWROK);
+		gpio_set(LED_CXL_POWER, GPIO_HIGH);
+		k_work_schedule(&set_DC_on_5s_work, K_SECONDS(DC_ON_5_SECOND));
 		LOG_INF("Power on success");
 	} else {
 		LOG_ERR("Power on fail");
@@ -70,12 +65,19 @@ void control_power_on_sequence()
 
 void control_power_off_sequence()
 {
-	if (cxl_power_status == CXL_POWER_OFF)
+	if (!get_DC_status())
 		return;
 
 	bool is_power_off = false;
 	// Inform Server Board expansion board power off
 	gpio_set(PWRGD_CARD_PWROK, POWER_OFF);
+	set_DC_status(PWRGD_CARD_PWROK);
+	gpio_set(LED_CXL_POWER, GPIO_LOW);
+	if (k_work_cancel_delayable(&set_DC_on_5s_work) != 0) {
+		LOG_ERR("Cancel set dc off delay work fail");
+	}
+	set_DC_on_delayed_status();
+	k_work_cancel_delayable(&record_cxl_version_work);
 	gpio_set(ASIC_DEV_RST_N, POWER_OFF);
 
 	// Disable i2c synchronized during error recovery/ASIC i2c pin
@@ -86,7 +88,6 @@ void control_power_off_sequence()
 	is_power_off = power_off_handler(DIMM_POWER_OFF_STAGE1);
 
 	if (is_power_off == true) {
-		cxl_power_status = CXL_POWER_OFF;
 		LOG_INF("Power off success");
 	} else {
 		LOG_ERR("Power off fail");

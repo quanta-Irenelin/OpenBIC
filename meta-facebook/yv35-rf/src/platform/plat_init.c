@@ -53,9 +53,8 @@ void pal_set_sys_status()
 {
 	set_MB_DC_status(FM_POWER_EN);
 	set_DC_status(PWRGD_CARD_PWROK);
-	init_cxl_power_status();
 	if (get_DC_status() == true) {
-		k_work_schedule_for_queue(&plat_work_q, &record_cxl_version_work, K_SECONDS(10));
+		k_work_schedule(&record_cxl_version_work, K_SECONDS(10));
 	}
 	set_DC_on_delayed_status();
 	set_DC_off_delayed_status();

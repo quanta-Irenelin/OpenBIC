@@ -43,7 +43,6 @@
 #include "util_worker.h"
 
 #define POWER_SEQ_CTRL_STACK_SIZE 1000
-#define DC_ON_5_SECOND 5
 #define DC_ON_10_SECOND 10
 #define I2C_RETRY 5
 #define P0V8_P0V9_VR 3
@@ -54,7 +53,6 @@
 #define ADCUNLOCK_BBEVENT_ERROR 0b10001000 /*ADCUNLOCK and BBEVENT occurred*/
 
 LOG_MODULE_REGISTER(plat_isr);
-K_WORK_DELAYABLE_DEFINE(set_DC_on_5s_work, set_DC_on_delayed_status);
 K_WORK_DELAYABLE_DEFINE(record_cxl_version_work, record_cxl_version);
 K_WORK_DEFINE(cxl_power_on_work, control_power_on_sequence);
 K_WORK_DEFINE(cxl_power_off_work, control_power_off_sequence);
@@ -122,12 +120,10 @@ void record_cxl_version()
 
 		if (cmp_result == 0) {
 			LOG_DBG("The Written CXL version is the same as the stored CXL version in EEPROM");
-			k_work_cancel_delayable(&record_cxl_version_work);
 			return;
 		} else {
 			ret = set_cxl_version(&set_cxl_ver);
 			if (ret == true) {
-				k_work_cancel_delayable(&record_cxl_version_work);
 				LOG_DBG("Set CXL version into eeprom success");
 				return;
 			}
@@ -139,37 +135,10 @@ void record_cxl_version()
 	}
 
 error:
-	if (get_DC_status() == true) 
-		k_work_reschedule_for_queue(&plat_work_q, &record_cxl_version_work, K_SECONDS(1));
+	if (get_DC_status() == true)
+		k_work_schedule(&record_cxl_version_work, K_SECONDS(1));
 
 	return;
-}
-
-void ISR_CXL_STATE()
-{
-	if (get_DC_status() == true) {
-		k_work_schedule_for_queue(&plat_work_q, &record_cxl_version_work, K_SECONDS(DC_ON_10_SECOND));
-	}else{
-		k_work_cancel_delayable(&record_cxl_version_work);
-	}
-}
-
-void ISR_DC_STATE()
-{
-	set_DC_status(PWRGD_CARD_PWROK);
-
-	// Set a access flag after DC on 5 secs
-	if (get_DC_status() == true) {
-		gpio_set(LED_CXL_POWER, GPIO_HIGH);
-		k_work_schedule(&set_DC_on_5s_work, K_SECONDS(DC_ON_5_SECOND));
-
-	} else {
-		gpio_set(LED_CXL_POWER, GPIO_LOW);
-		if (k_work_cancel_delayable(&set_DC_on_5s_work) != 0) {
-			LOG_ERR("Cancel set dc off delay work fail");
-		}
-		set_DC_on_delayed_status();
-	}
 }
 
 void ISR_MB_RST()

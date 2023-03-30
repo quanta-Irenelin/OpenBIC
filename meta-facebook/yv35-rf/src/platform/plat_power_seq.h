@@ -83,6 +83,5 @@ void control_power_on_sequence();
 void control_power_off_sequence();
 void control_power_stage(uint8_t control_mode, uint8_t control_seq);
 int check_power_stage(uint8_t check_mode, uint8_t check_seq, uint8_t stage);
-void init_cxl_power_status();
 
 #endif
