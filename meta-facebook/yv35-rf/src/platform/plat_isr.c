@@ -40,7 +40,7 @@
 #include "mctp.h"
 #include "plat_mctp.h"
 #include "plat_ipmi.h"
-
+#include "util_worker.h"
 
 #define POWER_SEQ_CTRL_STACK_SIZE 1000
 #define DC_ON_5_SECOND 5
@@ -56,66 +56,8 @@
 LOG_MODULE_REGISTER(plat_isr);
 K_WORK_DELAYABLE_DEFINE(set_DC_on_5s_work, set_DC_on_delayed_status);
 K_WORK_DELAYABLE_DEFINE(record_cxl_version_work, record_cxl_version);
-
-K_THREAD_STACK_DEFINE(power_thread, POWER_SEQ_CTRL_STACK_SIZE);
-struct k_thread power_thread_handler;
-k_tid_t power_tid;
-
-void control_power_sequence()
-{
-	if (gpio_get(FM_POWER_EN) == POWER_ON) { // CraterLake DC on
-		if (gpio_get(PWRGD_CARD_PWROK) == POWER_OFF) {
-			// If power on sequence not finished or not started , abort power off thread before creating power on thread
-			abort_power_thread();
-			init_power_on_thread();
-		} else {
-			// If the last stage of power on sequence already power on , no need to recheck power on sequence
-			// Update the flag of power on sequence number
-			set_power_on_seq(NUMBER_OF_POWER_ON_SEQ);
-		}
-	} else { // CraterLake DC off
-		if (gpio_get(CLK_100M_OSC_EN) == HIGH_ACTIVE) {
-			// If power off sequence not finished or not started , abort power on thread before creating power off thread
-			abort_power_thread();
-			init_power_off_thread();
-		} else {
-			// If the last stage of power off sequence already power off , no need to recheck power off sequence
-			// Update the flag of power off sequence number
-			set_power_off_seq(NUMBER_OF_POWER_OFF_SEQ);
-		}
-	}
-}
-
-void init_power_on_thread()
-{
-	// Avoid re-create thread by checking thread status and thread id
-	if (power_tid != NULL && strcmp(k_thread_state_str(power_tid), "dead") != 0) {
-		return;
-	}
-	power_tid = k_thread_create(&power_thread_handler, power_thread,
-				    K_THREAD_STACK_SIZEOF(power_thread), control_power_on_sequence,
-				    NULL, NULL, NULL, CONFIG_MAIN_THREAD_PRIORITY, 0, K_NO_WAIT);
-	k_thread_name_set(&power_thread_handler, "power_on_sequence_thread");
-}
-
-void init_power_off_thread()
-{
-	// Avoid re-create thread by checking thread status and thread id
-	if (power_tid != NULL && strcmp(k_thread_state_str(power_tid), "dead") != 0) {
-		return;
-	}
-	power_tid = k_thread_create(&power_thread_handler, power_thread,
-				    K_THREAD_STACK_SIZEOF(power_thread), control_power_off_sequence,
-				    NULL, NULL, NULL, CONFIG_MAIN_THREAD_PRIORITY, 0, K_NO_WAIT);
-	k_thread_name_set(&power_thread_handler, "power_off_sequence_thread");
-}
-
-void abort_power_thread()
-{
-	if (power_tid != NULL && strcmp(k_thread_state_str(power_tid), "dead") != 0) {
-		k_thread_abort(power_tid);
-	}
-}
+K_WORK_DEFINE(cxl_power_on_work, control_power_on_sequence);
+K_WORK_DEFINE(cxl_power_off_work, control_power_off_sequence);
 
 void check_power_abnormal(uint8_t power_good_gpio_num, uint8_t control_power_gpio_num)
 {
@@ -123,9 +65,8 @@ void check_power_abnormal(uint8_t power_good_gpio_num, uint8_t control_power_gpi
 		// If the control power pin is high when the power good pin is falling
 		// This means that the behavior of turning off is not expected
 		if (gpio_get(control_power_gpio_num) == CONTROL_ON) {
-			// Sequentially turn off the power
-			abort_power_thread();
-			init_power_off_thread();
+			// submit power off work
+			k_work_submit_to_queue(&plat_work_q, &cxl_power_off_work);
 		}
 	}
 }
@@ -133,11 +74,15 @@ void check_power_abnormal(uint8_t power_good_gpio_num, uint8_t control_power_gpi
 void ISR_MB_DC_STATE()
 {
 	set_MB_DC_status(FM_POWER_EN);
-	control_power_sequence();
+
+	if (gpio_get(FM_POWER_EN) == GPIO_HIGH)
+		k_work_submit_to_queue(&plat_work_q, &cxl_power_on_work);
+	else
+		k_work_submit_to_queue(&plat_work_q, &cxl_power_off_work);
 }
 
-void record_cxl_version(){
-
+void record_cxl_version()
+{
 	EEPROM_ENTRY set_cxl_ver = { 0 };
 	EEPROM_ENTRY get_cxl_ver = { 0 };
 	mctp *mctp_inst = NULL;
@@ -154,10 +99,10 @@ void record_cxl_version(){
 		LOG_ERR("fail set mctp_inst\n");
 		goto error;
 	}
-	
+
 	bool pm8702_status = pre_pm8702_read(DUMMY_ARG, DUMMY_ARG);
-	
-	if(pm8702_status == true){
+
+	if (pm8702_status == true) {
 		ret = cci_get_chip_fw_version(mctp_inst, ext_params, resp_buf, &read_len);
 		post_pm8702_read(DUMMY_ARG, DUMMY_ARG, DUMMY_ARG);
 	} else {
@@ -173,11 +118,11 @@ void record_cxl_version(){
 		}
 		memcpy(&set_cxl_ver.data, resp_buf, read_len);
 		int cmp_result = memcmp(&get_cxl_ver.data, &set_cxl_ver.data,
-		CXL_VERSION_LEN * sizeof(uint8_t));
+					CXL_VERSION_LEN * sizeof(uint8_t));
 
 		if (cmp_result == 0) {
 			LOG_DBG("The Written CXL version is the same as the stored CXL version in EEPROM");
-			k_work_cancel_delayable(&record_cxl_version_work);					
+			k_work_cancel_delayable(&record_cxl_version_work);
 			return;
 		} else {
 			ret = set_cxl_version(&set_cxl_ver);
@@ -193,8 +138,9 @@ void record_cxl_version(){
 		goto error;
 	}
 
-	error:
-		k_work_reschedule(&record_cxl_version_work, K_SECONDS(1));
+error:
+	if (get_DC_status() == true) 
+		k_work_reschedule_for_queue(&plat_work_q, &record_cxl_version_work, K_SECONDS(1));
 
 	return;
 }
@@ -202,8 +148,10 @@ void record_cxl_version(){
 void ISR_CXL_STATE()
 {
 	if (get_DC_status() == true) {
-		k_work_schedule(&record_cxl_version_work, K_SECONDS(DC_ON_10_SECOND));
-	} 
+		k_work_schedule_for_queue(&plat_work_q, &record_cxl_version_work, K_SECONDS(DC_ON_10_SECOND));
+	}else{
+		k_work_cancel_delayable(&record_cxl_version_work);
+	}
 }
 
 void ISR_DC_STATE()
