@@ -33,10 +33,10 @@ LOG_MODULE_REGISTER(plat_hook);
 adc_asd_init_arg adc_asd_init_args[] = { [0] = { .is_init = false } };
 
 pm8702_dimm_init_arg pm8702_dimm_init_args[] = { 
-	[0] = { .is_init = false, .dimm_id = 0 },
-	[1] = { .is_init = false, .dimm_id = 1 },
-	[2] = { .is_init = false, .dimm_id = 2 },
-	[3] = { .is_init = false, .dimm_id = 3 } 
+	[0] = { .is_init = false, .dimm_id = 0x41 },
+	[1] = { .is_init = false, .dimm_id = 0x42 },
+	[2] = { .is_init = false, .dimm_id = 0x43 },
+	[3] = { .is_init = false, .dimm_id = 0x44 } 
 };
 
 ina233_init_arg ina233_init_args[] = {
